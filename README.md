@@ -9,7 +9,7 @@ update @ 2023/05/30
 	
 	by terminal , press digit 1~9 , 0 to play wave file (NSP will not go into power down)
 
-		- when under play index 7~9 , 0 wave file , press S/s , will stop playing immediately
+		- when under play index 6~9 , 0 wave file , press S/s , will stop playing immediately
 	
 	by terminal , press A or a , to increase volume and D or d , to decrease volume
 
