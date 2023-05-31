@@ -19,7 +19,7 @@ update @ 2023/05/30
 
 4. Below file copy from Nuvoton NSP PlayList Editor folder
 
-	nsp_driver.c , use PC0 as BP01(DATA) , PC1 as BP00(CLK)
+	nsp_driver.c , use PC1 as BP01(DATA) , PC0 as BP00(CLK)
 	
 	nsp_driver.h  ,
 	
