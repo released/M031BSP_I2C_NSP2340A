@@ -39,6 +39,14 @@ update @ 2023/05/30
 
 ![image](https://github.com/released/M031BSP_I2C_NSP2340A/blob/main/NSP_PlayList_Editor_Tool_2.jpg)
 
+NSP playlist editor about product ID (customize)
+
+![image](https://github.com/released/M031BSP_I2C_NSP2340A/blob/main/NSP_PlayList_Editor_Tool_product_ID.jpg)
+
+NSP playlist editor settings : I2C , set address
+
+![image](https://github.com/released/M031BSP_I2C_NSP2340A/blob/main/NSP_PlayList_Editor_Tool_settings.jpg)
+
 7. below is screen capture about when press digit 
 
 ![image](https://github.com/released/M031BSP_I2C_NSP2340A/blob/main/log.jpg)

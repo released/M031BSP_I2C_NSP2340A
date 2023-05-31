@@ -6,7 +6,7 @@ Version = 2.00.004
 Chipitem = NSP2340_SOP8
 Config = {"AutoSaveResToLocal":0,"AutoSleep":1,"BusyOutput":0,"BusyPin":"","CommandTimeout":"3.20","ContinuePlayback":0,"DebounceTime":"40","I2C_DevAddr":90,"I2C_Frequency":100000,"ISPWrite":0,"PORCheckSum":0,"PaSupport":0,"PullHighLowReg":0,"PullModeDemo":1,"ResetStatus":1,"SilenceCompress":1,"SilenceConditionLimit":"10","SilenceConditionPCM":"0","SingleResUpdate":0,"StandByTime":"1.00","UartBaudRate":7200,"UartDelay":0,"UartParity":0,"UserDataSize":0,"WireMode":2}
 ChipType = NSP
-ProductID = 0
+ProductID = 305419896
 
 [PlayList_CpuIf]
 NVPBuildSuccess = 1
