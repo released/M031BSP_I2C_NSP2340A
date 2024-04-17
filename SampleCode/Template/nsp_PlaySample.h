@@ -52,6 +52,12 @@ UINT8 I2C_UserDataWrite(UINT32 UserWrite_ADDR,PUINT8 ISP_BUFFER,UINT16 WriteSize
 UINT8 I2C_UserDataRead(UINT32 UserRead_ADDR,PUINT8 ISP_BUFFER,UINT16 ReadSize);
 /*----- NSP ISP Update user space Sample -----*/
 void I2C_ISPUserSpaceWriteAndRead(void);
+
+/*----- NSP Updata touch config -----*/
+UINT8 I2C_TouchUpdataSample(UINT16 u16ConfigSize);
+/*----- NSP Load touch config -----*/
+UINT8 I2C_TouchLoadSample(UINT16 u16ConfigSize);
+
 #endif
 
 

@@ -337,6 +337,35 @@ void NSP_process(void)
 
 }
 
+void NSP_do_checksum(void)
+{
+    uint16_t  checksum = 0;
+    uint8_t  checksum_valid = 0;
+    uint32_t  fw_ver = 0;
+    uint8_t   rtn = 0;
+
+
+    printf("%s start\r\n",__FUNCTION__);
+    rtn = N_GET_FW_VERSION(&fw_ver);
+    printf("FW version:0x%04X (0x%02X)\r\n",fw_ver,rtn);
+
+    rtn = N_DO_CHECKSUM();
+    delay_ms(5000);
+    printf("%s delay 5 sec (0x%02X)\r\n",__FUNCTION__,rtn);
+
+    /*
+        0:right,1:error 
+    */
+    rtn = N_CHECKSUM_RIGHT(&checksum_valid); 
+    printf("CHECKSUM valid:0x%02X (0x%02X)\r\n",checksum_valid,rtn);
+
+    rtn = N_GET_CHECKSUM(&checksum);
+    printf("CHECKSUM value:0x%04X (0x%02X)\r\n",checksum,rtn);
+
+    printf("%s end\r\n",__FUNCTION__);
+
+}
+
 void I2C0_DeInit(void)
 {
     /* Disable I2C0 interrupt and clear corresponding NVIC bit */
@@ -752,6 +781,8 @@ int main()
 
     N_READ_ID(&nsp_ID); // need to set ID in playlist tool , default : 0x00
     printf("nsp_ID = 0x%2X\r\n" , nsp_ID);
+
+    NSP_do_checksum();
 
     /* Got no where to go, just loop forever */
     while(1)

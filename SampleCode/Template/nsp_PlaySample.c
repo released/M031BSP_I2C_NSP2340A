@@ -13,6 +13,7 @@ UINT8 	u8SP_VOL=0;                                      //speech volume:0~0x80
 UINT8 	u8IO_FLAG=0; 
 UINT8 	u8IO_VALUE=0;
 UINT8 	u8LVD_VALUE=0;
+UINT16  u16MAX_INDEX = 0;
 UINT8 	CHECKSUM_BIT=0;
 UINT16 	CHECKSUM_BYTES=0;
 UINT16 	ISP_CHECKSUM_BYTES=0;
@@ -53,50 +54,50 @@ UINT8 	g_au8Buf[FLASH_PAGE_SIZE]= {
 	};
 UINT8 	g_au8Buf_Read[FLASH_PAGE_SIZE]= {0};
 //===========================================================
-/*----- ï¿½È´ï¿½ï¿½ï¿½ï¿½Å½ï¿½ï¿½ï¿½ -----*/ 
+/*----- µÈ´ý²¥·Å½áÊø -----*/ 
 /*----- Waiting for playback to finish -----*/
 void I2C_WaitPlayEND(void)
 {
     UINT8 NSP_STATUS = 0;
-    while ((N_READ_STATUS(&NSP_STATUS) != 1) || (NSP_STATUS & 0x80))	 // ï¿½ï¿½È¡×´Ì¬ Read Status
-    {                                                  //BIT7(SP_BUSY) 0:NSPï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½, 1:NSPï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½
+    while ((N_READ_STATUS(&NSP_STATUS) != 1) || (NSP_STATUS & 0x80))	 // ¶ÁÈ¡×´Ì¬ Read Status
+    {                                                  //BIT7(SP_BUSY) 0:NSP²»ÔÚ²¥·ÅÖÐ, 1:NSPÕýÔÚ²¥·ÅÖÐ
          HOST_Delay500uS();						 
     }
 }
 
-/*----- ï¿½È´ï¿½Ö¸ï¿½ï¿½Ö´ï¿½Ð½ï¿½ï¿½ï¿½ -----*/ 
+/*----- µÈ´ýÖ¸ÁîÖ´ÐÐ½áÊø -----*/ 
 /*----- Waiting for the NSP command execution to finish -----*/
 UINT8 I2C_WaitExecutionEND(void)
 {
     UINT8 NSP_STATUS = 0;
-    while (N_READ_STATUS(&NSP_STATUS) != 1)           // ï¿½ï¿½È¡×´Ì¬ï¿½É¹ï¿½ï¿½ï¿½Ê¾Ö¸ï¿½ï¿½Ö´ï¿½ï¿½ï¿½ï¿½ï¿½
+    while (N_READ_STATUS(&NSP_STATUS) != 1)           // ¶ÁÈ¡×´Ì¬³É¹¦±íÊ¾Ö¸ÁîÖ´ÐÐÍê±Ï
     {                                                 // Read Status success: the NSP command done
           HOST_Delay500uS();						 
     }
     
-    if(NSP_STATUS & 0x40)                             // BIT6(CMD_VALID) 0:Ö¸ï¿½î²»ï¿½ï¿½ï¿½ï¿½, 1:Ö¸ï¿½ï¿½ï¿½Ö´ï¿½ï¿½
-          return 1;                                   // ï¿½Ø´ï¿½Öµ 1 ï¿½ï¿½ï¿½ï¿½ NSP Ö¸ï¿½ï¿½ï¿½ï¿½Ö´ï¿½Ð½ï¿½ï¿½ï¿½
+    if(NSP_STATUS & 0x40)                             // BIT6(CMD_VALID) 0:Ö¸Áî²»¿ÉÓÃ, 1:Ö¸Áî¿ÉÖ´ÐÐ
+          return 1;                                   // »Ø´«Öµ 1 ´ú±í NSP Ö¸ÁîÒÑÖ´ÐÐ½áÊø
                                                       // The return value 1 means the NSP command has been executed done.
     else								
-          return 0; 				      // ï¿½Ø´ï¿½Öµ 0 ï¿½ï¿½ï¿½ï¿½ NSPÖ¸ï¿½î²»ï¿½ï¿½Ö´ï¿½Ð§ï¿½
+          return 0; 				      // »Ø´«Öµ 0 ´ú±í NSPÖ¸Áî²»¿ÉÖ´ÐÐ§ô
                                                       // The return value of 0 means the NSP command is not executable.
 }
                                                          
-/*----- Ñ¯ï¿½ï¿½×´Ì¬ -----*/
+/*----- Ñ¯ÎÊ×´Ì¬ -----*/
 /*----- Ask for status -----*/
 UINT8 I2C_AskStatus(void)
 {
     UINT8 NSP_STATUS = 0;
     
-    if(N_READ_STATUS(&NSP_STATUS) == 1)               // ï¿½ï¿½È¡×´Ì¬ Read Status
+    if(N_READ_STATUS(&NSP_STATUS) == 1)               // ¶ÁÈ¡×´Ì¬ Read Status
     {
 	if(!(NSP_STATUS & 0x80) && (NSP_STATUS & 0x40) )
 	{
-             return 1;                               // ï¿½Ø´ï¿½Öµ 1 ï¿½ï¿½ï¿½ï¿½ NSP ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½Ð£ï¿½ï¿½ï¿½ NSP Ö¸ï¿½ï¿½ï¿½ï¿½Ö´ï¿½Ð½ï¿½ï¿½ï¿½
+             return 1;                               // »Ø´«Öµ 1 ´ú±í NSP ²»ÔÚ²¥·ÅÖÐ£¬ÇÒ NSP Ö¸ÁîÒÑÖ´ÐÐ½áÊø
 	}                                                  // The return value 1 means that the NSP is not playing, and the NSP command has been executed done.
 	else
 	{
-             return 0;                               // ï¿½Ø´ï¿½Öµ 0 ï¿½ï¿½ï¿½ï¿½ NSP ï¿½Ú²ï¿½ï¿½ï¿½ï¿½Ð£ï¿½ï¿½ï¿½ï¿½ï¿½ NSP Ö¸ï¿½î´«ï¿½ï¿½ï¿½Ð£ï¿½ï¿½ï¿½ï¿½ß²ï¿½ï¿½ï¿½Ö´ï¿½Ð§ï¿½
+             return 0;                               // »Ø´«Öµ 0 ´ú±í NSP ÔÚ²¥·ÅÖÐ£¬»òÕß NSP Ö¸Áî´«ÊäÖÐ£¬»òÕß²»¿ÉÖ´ÐÐ§ô
 	}                                                  // The return value of 0 means that the NSP is playing, or the NSP command is being transmitted, or it is not executable.
     }
     else
@@ -107,39 +108,39 @@ UINT8 I2C_AskStatus(void)
 /*----- Index Play Sample -----*/
 void I2C_IndexPlaySample(void)
 {
-    UINT16 temp = 0;                                    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½
+    UINT16 temp = 0;                                    // ²ÎÊý³õÊ¼»¯
     UINT8  u8RESOURCE_COUNT = 0;                        // init parameter            	
-    HOST_SYS_Init();                                    // hostÏµÍ³ï¿½ï¿½Ê¼ï¿½ï¿½
+    HOST_BUS_Init();                                    // hostÏµÍ³³õÊ¼»¯
                                                         // host system initialization
-    N_PLAY(1);                                          // ï¿½ï¿½ï¿½ï¿½ Index 1 ï¿½ï¿½Ð§ 
+    N_PLAY(1);                                          // ²¥·Å Index 1 ÒôÐ§ 
                                                         // Play Index 1 Resource
-    I2C_WaitPlayEND();                              // ï¿½È´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    I2C_WaitPlayEND();                              // µÈ´ý²¥·ÅÍê±Ï
                                                         // Waiting for playback to finish
-    N_PLAY(2);                                          // ï¿½ï¿½ï¿½ï¿½ Index 2 ï¿½ï¿½Ð§ 
+    N_PLAY(2);                                          // ²¥·Å Index 2 ÒôÐ§ 
                                                         // Play Index 2 Resource
-    N_PLAY_REPEAT(0);                                   // Ñ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Index 2 ï¿½ï¿½Ð§
+    N_PLAY_REPEAT(0);                                   // Ñ­»·²¥·Å Index 2 ÒôÐ§
                                                         // loop Index 2
                                                         
-    for (temp= 0; temp < 16000; temp++)                  // Ñ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 8 ï¿½ï¿½ï¿½ï¿½
+    for (temp= 0; temp < 16000; temp++)                  // Ñ­»·²¥·Å 8 ÃëÖÓ
     {                                                   // Loop for 8 seconds
         HOST_Delay500uS();     
     }
     
-    N_STOP_REPEAT();                                    // ï¿½ï¿½é²¥ï¿½Å½ï¿½ï¿½ï¿½Ö®ï¿½ï¿½Í£Ö¹ï¿½ï¿½ï¿½ï¿½
+    N_STOP_REPEAT();                                    // Õâ±é²¥·Å½áÊøÖ®ºó£¬Í£Ö¹²¥·Å
                                                         // stop playback after this time                                                     
-    I2C_WaitPlayEND();                                 // ï¿½È´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    I2C_WaitPlayEND();                                 // µÈ´ý²¥·ÅÍê±Ï
                                                         // Waiting for playback to finish
                                                         
                                                         
-    N_CHECK_INDEX_RCOUNT(5000);                          // ï¿½ï¿½ï¿½ Index 5000ï¿½Ç·ï¿½ï¿½ï¿½resource
+    N_CHECK_INDEX_RCOUNT(5000);                          // ¼ì²é Index 5000ÊÇ·ñÓÐresource
                                                         // check Index 5000 valid
-    N_GET_INDEX_RCOUNT(&u8RESOURCE_COUNT);               // ï¿½Ãµï¿½ Index 5000ï¿½ï¿½resourceï¿½ï¿½ï¿½ï¿½
+    N_GET_INDEX_RCOUNT(&u8RESOURCE_COUNT);               // µÃµ½ Index 5000µÄresource¸öÊý
                                                         // GET resource count of Index 5000
     if (u8RESOURCE_COUNT > 0)
     {
-    	N_PLAY(5000);                                    // ï¿½ï¿½ï¿½ï¿½ Index 5000 ï¿½ï¿½Ð§ 
+    	N_PLAY(5000);                                    // ²¥·Å Index 5000 ÒôÐ§ 
                                                          // Play Index 5000 Resource
-        I2C_WaitPlayEND();                              // ï¿½È´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+        I2C_WaitPlayEND();                              // µÈ´ý²¥·ÅÍê±Ï
                                                          // Waiting for playback to finish                                                 
     }                                                     
     while(1);
@@ -148,27 +149,27 @@ void I2C_IndexPlaySample(void)
 /*----- MultiPlay Sample -----*/
 void I2C_MultiPlaySample(void)
 {
-    UINT8 MultiPlayBuffer[10] = {1,1,2,2,3,3,4,4,5,5};  // ï¿½è¶¨ï¿½ï¿½ï¿½Ø²ï¿½ï¿½ï¿½Ë³ï¿½ï¿½ï¿½ï¿½ï¿½ 
+    UINT8 MultiPlayBuffer[10] = {1,1,2,2,3,3,4,4,5,5};  // Éè¶¨¶àÖØ²¥·ÅË³Ðò²ÎÊý 
                                                         // Set the multiplay order parameters.
-    UINT16 MultiPlay2BBuffer[4] = {257,1,300,2};  	// ï¿½è¶¨ï¿½ï¿½ï¿½Ø²ï¿½ï¿½ï¿½Ë³ï¿½ï¿½ï¿½ï¿½ï¿½ 
+    UINT16 MultiPlay2BBuffer[4] = {257,1,300,2};  	// Éè¶¨¶àÖØ²¥·ÅË³Ðò²ÎÊý 
                                                         // Set the multiplay order parameters.
     
-    HOST_SYS_Init();                                    // hostÏµÍ³ï¿½ï¿½Ê¼ï¿½ï¿½
+    HOST_BUS_Init();                                    // hostÏµÍ³³õÊ¼»¯
                                                         // host system initialization
     
-    N_MULTI_PLAY(6,&MultiPlayBuffer[0]);                // ï¿½è¶¨6ï¿½Ø¶ï¿½ï¿½é²¥ï¿½Å£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ Buffer[0]ï¿½ï¿½Ê¼ 
+    N_MULTI_PLAY(6,&MultiPlayBuffer[0]);                // Éè¶¨6ÖØ¶à×é²¥·Å£¬²¥·ÅÆðÊ¼ÓÉ Buffer[0]¿ªÊ¼ 
                                                         // Set 6 groups of multi-play, starting playback starts with Buffer[0].
     
-    I2C_WaitPlayEND();                              // ï¿½È´ï¿½ï¿½ï¿½ï¿½ï¿½Index 1 -> Index 1 -> Index2 -> Index 2 -> Index 3 -> Index 3 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    I2C_WaitPlayEND();                              // µÈ´ý²¥·ÅIndex 1 -> Index 1 -> Index2 -> Index 2 -> Index 3 -> Index 3 ½áÊø§ô
                                                         // Waiting for playback Index 1 -> Index 1 -> Index2 -> Index 2 -> Index 3 -> Index 3 is finished
                                                         
-    N_MULTI_PLAY_2B(3,&MultiPlay2BBuffer[0]);           // ï¿½è¶¨3ï¿½Ø¶ï¿½ï¿½é²¥ï¿½Å£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ 2BBuffer[0]ï¿½ï¿½Ê¼ 
+    N_MULTI_PLAY_2B(3,&MultiPlay2BBuffer[0]);           // Éè¶¨3ÖØ¶à×é²¥·Å£¬²¥·ÅÆðÊ¼ÓÉ 2BBuffer[0]¿ªÊ¼ 
                                                         // Set 3 groups of multi-play, starting playback starts with 2BBuffer[0].
                                                         
-    N_PLAY_REPEAT(2);                                   // ï¿½Ø¸ï¿½ï¿½ï¿½ï¿½ï¿½ Index 257 -> Index 1 -> Index300 ï¿½ï¿½Ð§ 2ï¿½ï¿½
+    N_PLAY_REPEAT(2);                                   // ÖØ¸´²¥·Å Index 257 -> Index 1 -> Index300 ÒôÐ§ 2±é
                                                         // repeat 2 times
     
-    I2C_WaitPlayEND();                              // ï¿½È´ï¿½ï¿½ï¿½ï¿½ï¿½Index 257 -> Index 1 -> Index300ï¿½ï¿½Ð§ 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    I2C_WaitPlayEND();                              // µÈ´ý²¥·ÅIndex 257 -> Index 1 -> Index300ÒôÐ§ 2±é½áÊø§ô
                                                         // Waiting for playback (Index 257 -> Index 1 -> Index300)* 2times is finished                                                                  
     while(1);
 }
@@ -176,53 +177,53 @@ void I2C_MultiPlaySample(void)
 /*----- Sleep Wake Up Sample -----*/
 void I2C_SleepWakeUpSample(void)
 {
-    UINT16 temp = 0;                                    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½				
+    UINT16 temp = 0;                                    // ²ÎÊý³õÊ¼»¯				
                                                         // init parameter 
-    HOST_SYS_Init();                                    // hostÏµÍ³ï¿½ï¿½Ê¼ï¿½ï¿½
+    HOST_BUS_Init();                                    // hostÏµÍ³³õÊ¼»¯
                                                         // host system initialization
-    N_PLAY_SLEEP(1);                                    // ï¿½ï¿½ï¿½ï¿½ Index 1 ï¿½ï¿½Ð§ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    N_PLAY_SLEEP(1);                                    // ²¥·Å Index 1 ÒôÐ§½áÊøºó½øÈëÐÝÃß
                                                         // Plays Index 1 and then goes to sleep.
-    for (temp= 0; temp < 14000; temp++)                 // 7 sec ï¿½È´ï¿½ï¿½ï¿½Ð§ï¿½ï¿½ï¿½Å½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    for (temp= 0; temp < 14000; temp++)                 // 7 sec µÈ´ýÒôÐ§²¥·Å½áÊøÐÝÃß
     {                                                   // 7 sec Wait for the sound effect to end and sleep
          HOST_Delay500uS();
     }
     
     
-    N_WAKUP();                                          // ï¿½ï¿½ï¿½ï¿½
+    N_WAKUP();                                          // »½ÐÑ
                                                         // Wake Up   
-    N_AUTO_SLEEP_DIS();                                 // GUIï¿½è¶¨sleep timeï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â£ï¿½ï¿½Ø±ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ß¹ï¿½ï¿½Ü£ï¿½Ö»ï¿½ï¿½N_PWR_DOWNï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë¯
-                                                        // GUIÃ»ï¿½ï¿½ï¿½è¶¨sleep timeï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½Ð§    
+    N_AUTO_SLEEP_DIS();                                 // GUIÉè¶¨sleep timeµÄÌõ¼þÏÂ£¬¹Ø±Õ×Ô¶¯ÐÝÃß¹¦ÄÜ£¬Ö»ÓÐN_PWR_DOWN²ÅÄÜÈëË¯
+                                                        // GUIÃ»ÓÐÉè¶¨sleep timeÔòÖ¸ÁîÎÞÐ§    
                                                         // (If user sets the sleep time in the GUI), disable the automatic sleep function, only N_PWR_DOWN can enter sleep
                                                         // The command is invalid if user does not set the sleep time in the GUI
                                                                                                             
-    N_PLAY(2);                                          // ï¿½ï¿½ï¿½ï¿½ Index 2 ï¿½ï¿½Ð§ 
+    N_PLAY(2);                                          // ²¥·Å Index 2 ÒôÐ§ 
                                                         // Play Index 2 Resource
-    for (temp= 0; temp < 8000; temp++)                  // ï¿½ï¿½ï¿½ï¿½ 4 sec
+    for (temp= 0; temp < 8000; temp++)                  // ²¥·Å 4 sec
     {                                                   // play for 4 sec
          HOST_Delay500uS();
     }
-    N_STOP();                                           // Ç¿ï¿½Æ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    N_STOP();                                           // Ç¿ÖÆ½áÊø²¥·Å
                                                         // stop speech   
-    N_PWR_DOWN();                                       // Ç¿ï¿½ï¿½Ö±ï¿½Ó½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    N_PWR_DOWN();                                       // Ç¿ÖÆÖ±½Ó½øÈëÐÝÃß
                                                         // Go straight to sleep.                                                 
-    for (temp= 0; temp < 8000; temp++)                  // ï¿½ï¿½ï¿½ï¿½ 4 sec
+    for (temp= 0; temp < 8000; temp++)                  // ÐÝÃß 4 sec
     {                                                   // enter sleep for 4 sec
          HOST_Delay500uS();
     }    
     
                                                     
     
-    N_WAKUP();                                          // ï¿½ï¿½ï¿½ï¿½
+    N_WAKUP();                                          // »½ÐÑ
                                                         // Wake Up 
-    N_AUTO_SLEEP_EN();                                  // ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ß¹ï¿½ï¿½Ü£ï¿½GUIï¿½è¶¨sleep timeÊ±ï¿½ï¿½ï¿½ï¿½Ã»ï¿½Ð²ï¿½ï¿½Å£ï¿½Ã»ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½î£¬Ã»ï¿½ï¿½LVDï¿½ï¿½checksumÖ´ï¿½Ð¾Í»ï¿½ï¿½ï¿½Ë¯
-                                                        // GUIÃ»ï¿½ï¿½ï¿½è¶¨sleep timeï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½Ð§    
+    N_AUTO_SLEEP_EN();                                  // ´ò¿ª×Ô¶¯ÐÝÃß¹¦ÄÜ£¬GUIÉè¶¨sleep timeÊ±¼äÄÚÃ»ÓÐ²¥·Å£¬Ã»ÓÐÐÂÖ¸Áî£¬Ã»ÓÐLVDºÍchecksumÖ´ÐÐ¾Í»áÈëË¯
+                                                        // GUIÃ»ÓÐÉè¶¨sleep timeÔòÖ¸ÁîÎÞÐ§    
                                                         // Enable the automatic sleep function:if no play, no new CMD, no LVD and checksum execution 
                                                         // during the sleep time(setting in the GUI),then the NSP will enter sleep
     							// The command is invalid if user does not set the sleep time in the GUI
     
-    N_PLAY(2);                                          // ï¿½ï¿½ï¿½ï¿½ Index 2 ï¿½ï¿½Ð§ 
+    N_PLAY(2);                                          // ²¥·Å Index 2 ÒôÐ§ 
                                                         // Play Index 2 Resource                                                   
-    I2C_WaitPlayEND();                                 // ï¿½È´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï£ï¿½GUIï¿½è¶¨sleep timeÊ±ï¿½ï¿½ï¿½ï¿½Ã»ï¿½Ð²ï¿½ï¿½Å£ï¿½Ã»ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½î£¬Ã»ï¿½ï¿½LVDï¿½ï¿½checksum,NSPï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    I2C_WaitPlayEND();                                 // µÈ´ý²¥·ÅÍê±Ï£¬GUIÉè¶¨sleep timeÊ±¼äÄÚÃ»ÓÐ²¥·Å£¬Ã»ÓÐÐÂÖ¸Áî£¬Ã»ÓÐLVDºÍchecksum,NSP×Ô¶¯½øÈëÐÝÃß
                                                         // Waiting for playback to finish
                                                         // If no play, no new CMD, no LVD and checksum execution 
                                                         // during the sleep time(setting in the GUI),then the NSP will enter sleep
@@ -232,49 +233,49 @@ void I2C_SleepWakeUpSample(void)
 /*----- Low Power Detection -----*/
 void I2C_LowPowerDetectionSample(void)
 {
-    UINT8 temp = 0;                                     // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½
+    UINT8 temp = 0;                                     // ²ÎÊý³õÊ¼»¯
     u8LVD_VALUE=0;                                      // init parameters
 	
-    HOST_SYS_Init();                                    // hostÏµÍ³ï¿½ï¿½Ê¼ï¿½ï¿½
+    HOST_BUS_Init();                                    // hostÏµÍ³³õÊ¼»¯
 							// host system initialization
 	
-    N_DO_LVD();	                                        // Ö´ï¿½Ðµï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    N_DO_LVD();	                                        // Ö´ÐÐµçÑ¹Õì²â¹ý³Ì
                                                         // Start power detection 
-    for (temp= 0; temp <16; temp++)                     // ï¿½È´ï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ï¿½ 8 ms
+    for (temp= 0; temp <16; temp++)                     // µÈ´ýµçÑ¹Õì²â¹ý³ÌÖ´ÐÐ 8 ms
     {                                                   // Waiting for power detection to execute 8 ms
         HOST_Delay500uS();
     }
 		
-    N_GET_LVD(&u8LVD_VALUE);                            // ï¿½Ãµï¿½ï¿½ï¿½Ç°ï¿½ï¿½Ñ¹ u8LVD_VALUE	
+    N_GET_LVD(&u8LVD_VALUE);                            // µÃµ½µ±Ç°µçÑ¹ u8LVD_VALUE	
                                                         // Get current voltage u8LVD_VALUE		
                                                         // 01H:              	VDD < 2.1V,
-                                                        // 02H:  	2.1V ï¿½ï¿½ VDD < 2.4V,
-                                                        // 04H: 	2.4V ï¿½ï¿½ VDD < 2.7V,
-                                                        // 08H: 	2.7V ï¿½ï¿½ VDD < 3.0V,
-                                                        // 10H: 	3.0V ï¿½ï¿½ VDD < 3.3V,
-                                                        // 20H: 	3.3V ï¿½ï¿½ VDD.
+                                                        // 02H:  	2.1V ¡Ü VDD < 2.4V,
+                                                        // 04H: 	2.4V ¡Ü VDD < 2.7V,
+                                                        // 08H: 	2.7V ¡Ü VDD < 3.0V,
+                                                        // 10H: 	3.0V ¡Ü VDD < 3.3V,
+                                                        // 20H: 	3.3V ¡Ü VDD.
     while(1);
 }
 
 /*----- NSP IO Control Sample -----*/
 void I2C_NSP_IO_CtrlSample(void)
 {
-    u8IO_FLAG = 0;                                     // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½
+    u8IO_FLAG = 0;                                     // ²ÎÊý³õÊ¼»¯
     u8IO_VALUE = 0x00;                                 // init parameter 
     	
-    HOST_SYS_Init();                                   // hostÏµÍ³ï¿½ï¿½Ê¼ï¿½ï¿½
+    HOST_BUS_Init();                                   // hostÏµÍ³³õÊ¼»¯
                                                        // host system initialization
     							
-    N_IO_CONFIG(0xF3);                                 // ï¿½ï¿½ï¿½ï¿½BP07/BP06Îªinput pinï¿½ï¿½BP13/BP02Îªoutput pin
+    N_IO_CONFIG(0xF3);                                 // ÉèÖÃBP07/BP06Îªinput pin£¬BP13/BP02Îªoutput pin
                                                        // Set BP07/BP06 as input pin and BP13/BP02 as output pin
                                                        // NSP080/170/340 SOP14: bit[7]:BP07,bit[6]:BP06(disable PA),bit[3]:BP13,bit[2]:BP02
                                                        // NSP480/650/960 SOP14: bit[7]:BP17(disable PA),bit[3]:BP13,bit[2]:BP12,bit[0]:BP20   							
-    N_IO_TYPE(&u8IO_FLAG);                             // ï¿½Ãµï¿½ IO ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ u8IO_FLAG
+    N_IO_TYPE(&u8IO_FLAG);                             // µÃµ½ IO µÄÀàÐÍ u8IO_FLAG
                                                        // Get the type of IO: u8IO_FLAG
 
-    N_SET_OUT(0x00);                                   // ï¿½ï¿½ï¿½ï¿½ BP13/BP02 output 0
+    N_SET_OUT(0x00);                                   // ÉèÖÃ BP13/BP02 output 0
                                                        // Set BP13/BP02 output 0
-    N_GET_INOUT(&u8IO_VALUE);                          // ï¿½Ãµï¿½ IO ï¿½ï¿½ï¿½ï¿½Öµ u8IO_VALUE
+    N_GET_INOUT(&u8IO_VALUE);                          // µÃµ½ IO µÄÊýÖµ u8IO_VALUE
                                                        // Get the value of IO: u8IO_VALUE
                                                        // NSP080/170/340 SOP14: bit[7]:BP07,bit[6]:BP06(disable PA),bit[3]:BP13,bit[2]:BP02
                                                        // NSP480/650/960 SOP14: bit[7]:BP17(disable PA),bit[3]:BP13,bit[2]:BP12,bit[0]:BP20
@@ -284,23 +285,23 @@ void I2C_NSP_IO_CtrlSample(void)
 /*----- CheckSum Sample -----*/
 void I2C_CheckSumSample(void)
 {
-    UINT16 temp = 0;                                   // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½
+    UINT16 temp = 0;                                   // ²ÎÊý³õÊ¼»¯
     CHECKSUM_BIT=0;                                    // init parameter 
     CHECKSUM_BYTES=0;
 
-    HOST_SYS_Init();                                   // hostÏµÍ³ï¿½ï¿½Ê¼ï¿½ï¿½
+    HOST_BUS_Init();                                   // hostÏµÍ³³õÊ¼»¯
                                                        // host system initialization
 
-    N_DO_CHECKSUM();                                   // Ö´ï¿½ï¿½checksumï¿½ï¿½ï¿½ï¿½,ï¿½Ë¹ï¿½ï¿½Ì´ï¿½Ô¼ï¿½ï¿½Òª2~3 sec,Ò²ï¿½ï¿½ï¿½æ»»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ MCU ï¿½ï¿½ï¿½Ø³ï¿½Ê½
+    N_DO_CHECKSUM();                                   // Ö´ÐÐchecksum²Ù×÷,´Ë¹ý³Ì´óÔ¼ÐèÒª2~3 sec,Ò²¿ÉÌæ»»³ÉÆäËû MCU Ö÷¿Ø³ÌÊ½
     for (temp= 0; temp <3000; temp++)                  // Execute checksum operation, this process takes about 2~3 sec, and can be replaced with other MCU main program.
     {
          HOST_Delay500uS();
          HOST_Delay500uS();
     }
 
-    N_CHECKSUM_RIGHT(&CHECKSUM_BIT);                    //ï¿½Ãµï¿½ checksumï¿½ï¿½È·ï¿½ï¿½ï¿½Ä½ï¿½ï¿½ CHECKSUM_BIT: 0:right,1:error 
+    N_CHECKSUM_RIGHT(&CHECKSUM_BIT);                    //µÃµ½ checksumÕýÈ·Óë·ñµÄ½á¹û CHECKSUM_BIT: 0:right,1:error 
                                                         //Get checksum result correct or not CHECKSUM_BIT: 0:right,1:error
-    N_GET_CHECKSUM(&CHECKSUM_BYTES);                    //ï¿½Ãµï¿½ checksum 16Î»ï¿½ï¿½Öµï¿½ï¿½ï¿½ CHECKSUM_BYTES
+    N_GET_CHECKSUM(&CHECKSUM_BYTES);                    //µÃµ½ checksum 16Î»ÊýÖµ½á¹û CHECKSUM_BYTES
                                                         //Get checksum 16-bits result CHECKSUM_BYTES
 							
     while(1);
@@ -309,17 +310,17 @@ void I2C_CheckSumSample(void)
 /*----- Busy Pin Set Sample -----*/
 void I2C_BusyPinSetSample(void)
 {
-    HOST_SYS_Init();                                    // IO ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ 
+    HOST_BUS_Init();                                    // IO ½çÃæ³õÊ¼»¯ 
                                                         // host system initialization
-    N_BZPIN_EN();                                       // BP02 ï¿½ï¿½ÎªÃ¦ï¿½ï¿½ï¿½ï¿½ï¿½Ä£Ê½ 1:ï¿½ï¿½ï¿½Å½ï¿½ï¿½ï¿½, 0:ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    N_BZPIN_EN();                                       // BP02 ±äÎªÃ¦ÏßÊä³öÄ£Ê½ 1:²¥·Å½áÊø, 0:²¥·ÅÖÐ
                                                         // Enable the busy-pin function at BP02. 1: playback finish,0:speech is playing.
-    N_PLAY(1);                                          // ï¿½ï¿½ï¿½ï¿½ Index 1 ï¿½ï¿½Ð§, ï¿½ï¿½ï¿½Å¹ï¿½ï¿½ï¿½ï¿½ï¿½BP02ï¿½ï¿½ï¿½ï¿½Íµï¿½Æ½
+    N_PLAY(1);                                          // ²¥·Å Index 1 ÒôÐ§, ²¥·Å¹ý³ÌÖÐBP02Êä³öµÍµçÆ½
                                                         // Play Index 1 Resource,and BP02 output low during playback
-    I2C_WaitPlayEND();                              // ï¿½È´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïºï¿½BP02ï¿½ï¿½ï¿½ï¿½ßµï¿½Æ½
+    I2C_WaitPlayEND();                              // µÈ´ý²¥·ÅÍê±Ï£¬²¥·ÅÍê±ÏºóBP02Êä³ö¸ßµçÆ½
                                                         // Waiting for playback to finish, BP02 output high level after playback is completed
-    //......ï¿½ï¿½ï¿½ï¿½ MCU ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê½
+    //......Ö÷¿Ø MCU ´¦Àí³ÌÊ½
     //Host MCU Handle 
-    N_BZPIN_DIS();                                      // ï¿½Ø±ï¿½ BP02 Ã¦ï¿½ï¿½ï¿½ï¿½ï¿½Ä£Ê½, BP02ï¿½Ö¸ï¿½ï¿½ï¿½Í¨input
+    N_BZPIN_DIS();                                      // ¹Ø±Õ BP02 Ã¦ÏßÊä³öÄ£Ê½, BP02»Ö¸´ÆÕÍ¨input
                                                         // Disable the busy-pin function at BP02, and BP02 restore normal input
     while(1);
 }
@@ -327,23 +328,23 @@ void I2C_BusyPinSetSample(void)
 /*----- Volume Control Sample -----*/
 void I2C_VolumeCtrlSample(void)
 {
-    UINT16 temp = 0;                                    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½
+    UINT16 temp = 0;                                    // ²ÎÊý³õÊ¼»¯
     u8SP_VOL = 0;                                       // init parameter 
 
-    HOST_SYS_Init();                                    // IO ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ 
+    HOST_BUS_Init();                                    // IO ½çÃæ³õÊ¼»¯ 
                                                         // host system initialization
-    N_PLAY(1);                                          // ï¿½ï¿½ï¿½ï¿½ Index 1 ï¿½ï¿½Ð§
+    N_PLAY(1);                                          // ²¥·Å Index 1 ÒôÐ§
                                                         // Play Index 1 Resource
-    N_PLAY_REPEAT(0);                                   // Ñ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Index 1 ï¿½ï¿½Ð§
+    N_PLAY_REPEAT(0);                                   // Ñ­»·²¥·Å Index 1 ÒôÐ§
                                                         // Looping Index 1
 				
-    N_GET_VOL(&u8SP_VOL);                               // ï¿½ï¿½È¡ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½ï¿½è¶¨ 
+    N_GET_VOL(&u8SP_VOL);                               // ¶ÁÈ¡µ±Ç°ÒôÁ¿Éè¶¨ 
                                                         // Get current volume setting
 				
-    while ( u8SP_VOL >= 0x20 )	                        // Ã¿ï¿½ï¿½3ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½Ý¼ï¿½0x10,Ö±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý¼ï¿½ï¿½ï¿½0x20ÎªÖ¹
+    while ( u8SP_VOL >= 0x20 )	                        // Ã¿¸ô3ÃëÖÓ,ÒôÁ¿µÝ¼õ0x10,Ö±µ½ÒôÁ¿µÝ¼õÖÁ0x20ÎªÖ¹
     {                                                   // the volume is reduced by 0x16 every 3 seconds until the volume is decremented to 0x20
           u8SP_VOL -= 0x10 ;
-          N_SET_VOL(u8SP_VOL);                          // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ set volume					
+          N_SET_VOL(u8SP_VOL);                          // ÉèÖÃÒôÁ¿ set volume					
           for (temp= 0; temp <3000; temp++)		
           {					
              HOST_Delay500uS();
@@ -351,7 +352,7 @@ void I2C_VolumeCtrlSample(void)
           }	
     } 
     
-    N_STOP_REPEAT();                                    // ï¿½ï¿½é²¥ï¿½Å½ï¿½ï¿½ï¿½Ö®ï¿½ï¿½Í£Ö¹ï¿½ï¿½ï¿½ï¿½
+    N_STOP_REPEAT();                                    // Õâ±é²¥·Å½áÊøÖ®ºó£¬Í£Ö¹²¥·Å
                                                         // stop playback after this time    
 
     while(1);       
@@ -360,13 +361,13 @@ void I2C_VolumeCtrlSample(void)
 /*----- Read ID & FW Version Sample -----*/
 void I2C_ReadIdAndFwVerSample(void)
 {
-    HOST_SYS_Init();                                    // IO ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ 
+    HOST_BUS_Init();                                    // IO ½çÃæ³õÊ¼»¯ 
                                                         // host system initialization
-    N_GET_FW_VERSION(&u32NSP_FW_VERSION);               // ï¿½Ãµï¿½ FW ï¿½æ±¾ï¿½ï¿½u32NSP_FW_VERSION		 
+    N_GET_FW_VERSION(&u32NSP_FW_VERSION);               // µÃµ½ FW °æ±¾ºÅu32NSP_FW_VERSION		 
                                                         // Get the FW version number u32NSP_FW_VERSION
-    N_READ_ID(&u32NSP_ID);                              // ï¿½Ãµï¿½ product ID
+    N_READ_ID(&u32NSP_ID);                              // µÃµ½ product ID
                                                         // get product ID
-    if(u32NSP_ID == 0xD4C3B2A1)                         // ï¿½ï¿½ï¿½ product IDï¿½ï¿½È·
+    if(u32NSP_ID == 0xD4C3B2A1)                         // Èç¹û product IDÕýÈ·
     {                                                   // If the product ID is correct
        //.......
     }
@@ -374,40 +375,40 @@ void I2C_ReadIdAndFwVerSample(void)
 }
 
 /*----- Mixed Sample 1 -----*/
-/*----- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ NSP IO BP07 ï¿½ï¿½ï¿½ï¿½Íµï¿½Æ½ï¿½ï¿½ï¿½ -----*/
+/*----- ²¥·ÅÖÐ NSP IO BP07 Êä³öµÍµçÆ½µãµÆ -----*/
 void I2C_MixedSample1(void)
 {
-    HOST_SYS_Init();                                    // IO ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ 
+    HOST_BUS_Init();                                    // IO ½çÃæ³õÊ¼»¯ 
                                                         // host system initialization
-    N_IO_CONFIG(0x7F);                                  // ï¿½è¶¨ BP07 Îªï¿½ï¿½ï¿½Ä£Ê½, BIT7(BP07) 1:ï¿½ï¿½ï¿½ï¿½Ä£Ê½ 0:ï¿½ï¿½ï¿½Ä£Ê½
+    N_IO_CONFIG(0x7F);                                  // Éè¶¨ BP07 ÎªÊä³öÄ£Ê½, BIT7(BP07) 1:ÊäÈëÄ£Ê½ 0:Êä³öÄ£Ê½
                                                         // Setting BP07 is OUTPUT Mode. BIT7(BP07) 1:InPut Mode 0:OutPut Mode
-    N_PLAY(1);                                          // ï¿½ï¿½ï¿½ï¿½ Index 1 ï¿½ï¿½Ð§
+    N_PLAY(1);                                          // ²¥·Å Index 1 ÒôÐ§
                                                         // Play Index 1 Resource
-    N_SET_OUT(0x7F);                                    // ï¿½è¶¨ BP07 Îªï¿½ï¿½ï¿½ï¿½Íµï¿½Æ½
+    N_SET_OUT(0x7F);                                    // Éè¶¨ BP07 ÎªÊä³öµÍµçÆ½
                                                         // Setting BP07 is Output Low
-    I2C_WaitPlayEND();                              // ï¿½È´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïºï¿½BP02ï¿½ï¿½ï¿½ï¿½ßµï¿½Æ½
+    I2C_WaitPlayEND();                              // µÈ´ý²¥·ÅÍê±Ï£¬²¥·ÅÍê±ÏºóBP02Êä³ö¸ßµçÆ½
                                                         // Waiting for playback to finish, BP02 output high level after playback is completed
-    N_SET_OUT(0xFF);                                    // ï¿½è¶¨ BP07 Îªï¿½ï¿½ï¿½ï¿½ßµï¿½Æ½
+    N_SET_OUT(0xFF);                                    // Éè¶¨ BP07 ÎªÊä³ö¸ßµçÆ½
                                                         // Setting BP07 is Output High
     while(1);
 }
 /*----- Mixed Sample 2 -----*/
-/*----- ï¿½ï¿½Ê±ï¿½à¹¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ MCU ï¿½Î¿É¿ï¿½ï¿½Æ¨ï¿½ -----*/
+/*----- ·ÖÊ±¶à¹¤´¦Àí£¬²¥·ÅÖÐ MCU ÈÎ¿É¿ØÖÆ¨î -----*/
 void I2C_MixedSample2(void)
 {
-    HOST_SYS_Init();                                    // IO ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ 
+    HOST_BUS_Init();                                    // IO ½çÃæ³õÊ¼»¯ 
                                                         // host system initialization
-    N_PLAY(1);                                          // ï¿½ï¿½ï¿½ï¿½ Index 1 ï¿½ï¿½Ð§
+    N_PLAY(1);                                          // ²¥·Å Index 1 ÒôÐ§
                                                         // Play Index 1 Resource
     while(1)
     {
         //.......
-        //ï¿½ï¿½ï¿½ï¿½ MCU ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê½
+        //Ö÷¿Ø MCU ´¦Àí³ÌÊ½
         //Host MCU Handle 
-        if(I2C_AskStatus())                         // Ñ¯ï¿½ï¿½ NSP ×´Ì¬
+        if(I2C_AskStatus())                         // Ñ¯ÎÊ NSP ×´Ì¬
                                                         // Ask NSP Status
         {
-            break;                                      // NSP ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¼ï¿½ï¿½ï¿½Ö´ï¿½ï¿½Ö¸ï¿½î´«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë¿ªï¿½ï¿½Ñ­ï¿½ï¿½ï¿½C
+            break;                                      // NSP ²¥·ÅÍê±Ï¼°¿ÉÖ´ÐÐÖ¸Áî´«Êä½áÊø£¬Àë¿ª´ËÑ­»·¡C
                                                         // After the NSP is finished playing and the command is over, leave this loop.
         }
     }
@@ -417,70 +418,72 @@ void I2C_MixedSample2(void)
 void I2C_MixedSample3(void)
 {
     PUINT8 PLAY_BUFFER = 0;
-    UINT8 g_au8MultiPlayBuf[MULTI_PLAY_MAX]={3,1,2,4,8,6,5,7,10,9,0,0,0,0,0,0,// ï¿½è¶¨ï¿½ï¿½ï¿½Ø²ï¿½ï¿½ï¿½Ë³ï¿½ï¿½ï¿½ï¿½ï¿½ 
+    UINT8 g_au8MultiPlayBuf[MULTI_PLAY_MAX]={3,1,2,4,8,6,5,7,10,9,0,0,0,0,0,0,// Éè¶¨¶àÖØ²¥·ÅË³Ðò²ÎÊý 
                                              0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};// Set the multiplay order parameters.
 					
-    HOST_SYS_Init();                                    // IO ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ 
+    HOST_BUS_Init();                                    // IO ½çÃæ³õÊ¼»¯ 
                                                         // host system initialization
 
-    if(N_READ_ID(&u32NSP_ID) == 1)                      // ï¿½Ãµï¿½ product ID					
+    if(N_READ_ID(&u32NSP_ID) == 1)                      // µÃµ½ product ID					
     {                                                   // get product ID	
-         if(u32NSP_ID == 0xD4C3B2A1)                    // ï¿½ï¿½ï¿½ product IDï¿½ï¿½È·
+         if(u32NSP_ID == 0xD4C3B2A1)                    // Èç¹û product IDÕýÈ·
          {                                              // If the product ID is correct	
-               UINT16 temp = 0;                         // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½				
+               UINT16 temp = 0;                         // ²ÎÊý³õÊ¼»¯				
                                                         // init parameter 
-               N_GET_FW_VERSION(&u32NSP_FW_VERSION);    // ï¿½Ãµï¿½ FW ï¿½æ±¾ï¿½ï¿½u32NSP_FW_VERSION		 
-                                                        // Get the FW version number u32NSP_FW_VERSION
-               N_SET_VOL(0x50);                         // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ set volume	
+               N_GET_FW_VERSION(&u32NSP_FW_VERSION);    // µÃµ½ FW °æ±¾ºÅu32NSP_FW_VERSION
+														// Get the FW version number u32NSP_FW_VERSION
+               N_GET_MAX_INDEX(&u16MAX_INDEX);		    // ?????????u16MAX_INDEX
+                                                        // Get the max PlayList index u16MAX_INDEX			 		 
+               N_SET_VOL(0x50);                         // ÉèÖÃÒôÁ¿ set volume	
 
                PLAY_BUFFER = g_au8MultiPlayBuf;				
-               N_MULTI_PLAY(4,PLAY_BUFFER);             // ï¿½è¶¨4ï¿½Ø¶ï¿½ï¿½é²¥ï¿½Å£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ g_au8MultiPlayBuf[0]ï¿½ï¿½Ê¼ 
+               N_MULTI_PLAY(4,PLAY_BUFFER);             // Éè¶¨4ÖØ¶à×é²¥·Å£¬²¥·ÅÆðÊ¼ÓÉ g_au8MultiPlayBuf[0]¿ªÊ¼ 
                                                         // Set 4 groups of multi-play, starting playback starts with g_au8MultiPlayBuf[0]. 			
-               N_PLAY_REPEAT(2);                        // ï¿½Ø¸ï¿½ï¿½ï¿½ï¿½ï¿½ Index 3 -> Index 1 -> Index2 -> Index4 ï¿½ï¿½Ð§ 2ï¿½ï¿½
+               N_PLAY_REPEAT(2);                        // ÖØ¸´²¥·Å Index 3 -> Index 1 -> Index2 -> Index4 ÒôÐ§ 2±é
                                                         // repeat 2 times:Index 3 -> Index 1 -> Index2 -> Index4 
 
-               I2C_WaitPlayEND();                   // ï¿½È´ï¿½ï¿½ï¿½ï¿½ï¿½Index 3 -> Index 1 -> Index2 -> Index4 ï¿½ï¿½Ð§ 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+               I2C_WaitPlayEND();                   // µÈ´ý²¥·ÅIndex 3 -> Index 1 -> Index2 -> Index4 ÒôÐ§ 2±é½áÊø§ô
                                                         // Waiting for playback (Index 3 -> Index 1 -> Index2 -> Index4)* 2times is finished          
                                                         
-               for (u16PlayListIndex= 1; u16PlayListIndex <= MAX_EQU_LIST; u16PlayListIndex++)  //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð§ï¿½ï¿½Í·ï¿½ï¿½Î²ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½
+               for (u16PlayListIndex= 1; u16PlayListIndex <= u16MAX_INDEX; u16PlayListIndex++)  //ËùÓÐÒôÐ§´ÓÍ·µ½Î²²¥·ÅÒ»±é
                {                                        // Play all the resource from index 1 to MAX_EQU_LIST
-                        N_PLAY(u16PlayListIndex);       // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ð§ 
+                        N_PLAY(u16PlayListIndex);       // ²¥·Å ÒôÐ§ 
                                                         // Play Resource
-                        I2C_WaitPlayEND();          // ï¿½È´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+                        I2C_WaitPlayEND();          // µÈ´ý²¥·ÅÍê±Ï
                                                         // Waiting for playback to finish
                }
 
-               for (u16PlayListIndex= 1; u16PlayListIndex <= MAX_EQU_LIST; u16PlayListIndex++)//ï¿½ï¿½ index1 ï¿½ï¿½Ê¼Ã¿ï¿½ï¿½ï¿½ï¿½5sec ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ð§
+               for (u16PlayListIndex= 1; u16PlayListIndex <= u16MAX_INDEX; u16PlayListIndex++)//´Ó index1 ¿ªÊ¼Ã¿²¥·Å5sec »»ÏÂÒ»¸öÒôÐ§
                {                                        // Play the next index every 5 seconds from index1
-                        N_PLAY(u16PlayListIndex);       // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ð§ 
+                        N_PLAY(u16PlayListIndex);       // ²¥·Å ÒôÐ§ 
                                                         // Play Resource
                         for (temp= 0; temp < 10000; temp++)
                         {
                                HOST_Delay500uS();
                         }
-                        N_STOP();                       // Í£Ö¹ï¿½ï¿½ï¿½Åµï¿½Ç°ï¿½ï¿½Ð§
+                        N_STOP();                       // Í£Ö¹²¥·Åµ±Ç°ÒôÐ§
                                                         // Stop playing the current sound
                }
 
-               N_PWR_DOWN();                            // Ç¿ï¿½ï¿½Ö±ï¿½Ó½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	
+               N_PWR_DOWN();                            // Ç¿ÖÆÖ±½Ó½øÈëÐÝÃß	
                                                         // Go straight to sleep			
-               for (temp= 0; temp < 2000; temp++)       // Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ 1 ï¿½ï¿½ï¿½ï¿½
+               for (temp= 0; temp < 2000; temp++)       // Ê±¼ä³ÖÐø 1 ÃëÖÓ
                {                                        // 1 sec
                         HOST_Delay500uS();	
                }
 
 
-               N_WAKUP();                                // ï¿½ï¿½ï¿½ï¿½
+               N_WAKUP();                                // »½ÐÑ
                                                          // Wake Up
-               for (u16PlayListIndex= 1; u16PlayListIndex <= MAX_EQU_LIST; u16PlayListIndex++) //ï¿½ï¿½ index1 ï¿½ï¿½Ê¼Ã¿ï¿½ï¿½ï¿½ï¿½ 7 sec ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ð§ï¿½ï¿½ï¿½ï¿½Ð§ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½7secï¿½Ä»ï¿½ï¿½ï¿½ï¿½ï¿½Ý½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+               for (u16PlayListIndex= 1; u16PlayListIndex <= u16MAX_INDEX; u16PlayListIndex++) //´Ó index1 ¿ªÊ¼Ã¿²¥·Å 7 sec »»ÏÂÒ»¸öÒôÐ§£¬ÒôÐ§³¤¶ÈÐ¡ÓÚ7secµÄ»°»á¶ÌÔÝ½øÈëÐÝÃß
                {									//Play the next index every 7 sec from index1. If the sound length is less than 7sec, it will go to sleep briefly.
-                        N_PLAY_SLEEP(u16PlayListIndex); // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ð§ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+                        N_PLAY_SLEEP(u16PlayListIndex); // ²¥·Å ÒôÐ§½áÊøºó½øÈëÐÝÃß
                                                         // Plays and then goes to sleep.
                         for (temp= 0; temp < 14000; temp++)
                         {
                                HOST_Delay500uS();
                         }
-               N_WAKUP();                                // ï¿½ï¿½ï¿½ï¿½
+               N_WAKUP();                                // »½ÐÑ
                                                          // Wake Up
                }
          }
@@ -492,13 +495,17 @@ void I2C_MixedSample3(void)
 //Read resource bin: starting from u32ByteAddr, the length of u32DataLen data into the buffer pointed to by pau8Data
 void Flash_Read(UINT32 *psFlashHandler,UINT32 u32ByteAddr,PUINT8 pau8Data,UINT32 u32DataLen)
 {
-//ï¿½ï¿½ï¿½ï¿½Îªread resource binï¿½Ð´ï¿½u32ByteAddrï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªu32DataLenï¿½ï¿½dataï¿½ï¿½ï¿½ï¿½pau8Dataï¿½ï¿½Ö¸ï¿½ï¿½ï¿½bufferï¿½ï¿½
+//¸ü¸ÄÎªread resource binÖÐ´Óu32ByteAddr¿ªÊ¼£¬³¤¶ÈÎªu32DataLenµÄdata·ÅÈëpau8DataËùÖ¸ÏòµÄbufferÖÐ
 }
-
+//Write resource bin: starting from u32ByteAddr, the length of u32DataLen data into the buffer pointed to by pau8Data
+void Flash_Write(UINT32 *psFlashHandler,UINT32 u32WriteAddr,PUINT8 pau8Data,UINT32 u32DataLen)
+{
+	
+}
 /*----- NSP ISP Update all resource Sample -----*/
 void I2C_ISPUpdateAllResourceSample(void)
 {
-    UINT32 u32StartAddr = 0;                            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½				
+    UINT32 u32StartAddr = 0;                            // ²ÎÊý³õÊ¼»¯				
     UINT32 u32ISPSize = 0;                              // init parameter 
     UINT32 u32ISPSizeDone = 0;
     UINT32 u32ISPADDR = 0;
@@ -510,11 +517,11 @@ void I2C_ISPUpdateAllResourceSample(void)
     UINT8 u8RightCMD = 0;
     UINT16 u16ISPChecksumFromFile = 0;
 	
-    HOST_SYS_Init();                                   // IO ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ 
+    HOST_BUS_Init();                                   // IO ½çÃæ³õÊ¼»¯ 
                                                        // host system initialization
-    N_WAKUP();                                          // ï¿½ï¿½ï¿½ï¿½
+    N_WAKUP();                                          // »½ÐÑ
                                                         // Wake Up        
-    N_PLAY(1);                                         // ï¿½ï¿½ï¿½ï¿½ Index 1 ï¿½ï¿½Ð§
+    N_PLAY(1);                                         // ²¥·Å Index 1 ÒôÐ§
                                                        // Play Index 1 Resource
    // RES_VP_CpuIf_NSPxxx_SOPxx.bin:
    // byte 0x0~0x3 	: Signature (NSPB)
@@ -525,7 +532,7 @@ void I2C_ISPUpdateAllResourceSample(void)
    // byte 0x12~0x15	: 1st Segment Data Offset
    // byte 0x16~0x19	: 2nd Segment Data Offset
     Flash_Read(&g_sFlash, u32StartAddr, g_au8Buf, 22);
-    u32FirstSegADDR = (g_au8Buf[18]<<24) + (g_au8Buf[19]<<16)+ (g_au8Buf[20]<<8) + g_au8Buf[21]; // ï¿½Ãµï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½
+    u32FirstSegADDR = (g_au8Buf[18]<<24) + (g_au8Buf[19]<<16)+ (g_au8Buf[20]<<8) + g_au8Buf[21]; // µÃµ½µÚÒ»¸öÇø¿éµÄÎ»ÒÆ
                                                       //get 1st Segment Data Offset
     u32StartAddr = u32StartAddr + u32FirstSegADDR;
 
@@ -536,63 +543,63 @@ void I2C_ISPUpdateAllResourceSample(void)
     // byte 0xA~0xD 	: product ID
     // byte 0xE~0x11	: Chip PDID
     Flash_Read(&g_sFlash, u32StartAddr, g_au8Buf, 18);
-    u32ISPADDR = (g_au8Buf[0]<<24) + (g_au8Buf[1]<<16) + (g_au8Buf[2]<<8) + g_au8Buf[3];     // ï¿½Ãµï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð´ï¿½ï¿½ï¿½Ö·
+    u32ISPADDR = (g_au8Buf[0]<<24) + (g_au8Buf[1]<<16) + (g_au8Buf[2]<<8) + g_au8Buf[3];     // µÃµ½µÚÒ»¸öÇø¿éµÄÐ´ÈëµØÖ·
     u32ISPReadADDR = u32ISPADDR;                      // get 1st Segment ISP write address
-    u32ISPSize = (g_au8Buf[4]<<24) + (g_au8Buf[5]<<16) +  (g_au8Buf[6]<<8) + g_au8Buf[7];     // ï¿½Ãµï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð´ï¿½ë³¤ï¿½ï¿½
+    u32ISPSize = (g_au8Buf[4]<<24) + (g_au8Buf[5]<<16) +  (g_au8Buf[6]<<8) + g_au8Buf[7];     // µÃµ½µÚÒ»¸öÇø¿éµÄÐ´Èë³¤¶È
                                                       // get 1st Segment ISP write size
-    u16ISPChecksumFromFile = (g_au8Buf[8]<<8) + g_au8Buf[9];				     // ï¿½Ãµï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½checksum	
+    u16ISPChecksumFromFile = (g_au8Buf[8]<<8) + g_au8Buf[9];				     // µÃµ½µÚÒ»¸öÇø¿éµÄchecksum	
                                                       // get 1st Segment checksum		
-    u32NSP_ID = (g_au8Buf[10]<<24)+ (g_au8Buf[11]<<16)+ (g_au8Buf[12]<<8) +  g_au8Buf[13];   // ï¿½Ãµï¿½product ID
+    u32NSP_ID = (g_au8Buf[10]<<24)+ (g_au8Buf[11]<<16)+ (g_au8Buf[12]<<8) +  g_au8Buf[13];   // µÃµ½product ID
                                                       // get product ID
-    u32CHIP_ID = (g_au8Buf[14]<<24)+ (g_au8Buf[15]<<16)+ (g_au8Buf[16]<<8) +  g_au8Buf[17];  // ï¿½Ãµï¿½CHIP_ID
+    u32CHIP_ID = (g_au8Buf[14]<<24)+ (g_au8Buf[15]<<16)+ (g_au8Buf[16]<<8) +  g_au8Buf[17];  // µÃµ½CHIP_ID
                                                       // get CHIP_ID
     u32StartAddr += 10;
 
-    I2C_WaitPlayEND();                            // ï¿½È´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    I2C_WaitPlayEND();                            // µÈ´ý²¥·ÅÍê±Ï
                                                       // Waiting for playback to finish
-    //u32CHIP_ID = 0xFFFFFFFF;                          //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ãµï¿½ï¿½fï¿½ï¿½ï¿½NSPÐ¾Æ¬ï¿½ï¿½Õˆï¿½Æ³ï¿½//
+    //u32CHIP_ID = 0xFFFFFFFF;                          //Èç¹ûÄúÄÃµ½Åf°æµÄNSPÐ¾Æ¬£¬ÕˆÒÆ³ý//
                                                         //If user get the old NSP chips please remove //    
-    N_AUTO_SLEEP_DIS();                                 // GUIï¿½è¶¨sleep timeï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â£ï¿½ï¿½Ø±ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ß¹ï¿½ï¿½Ü£ï¿½Ö»ï¿½ï¿½N_PWR_DOWNï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë¯
-                                                        // GUIÃ»ï¿½ï¿½ï¿½è¶¨sleep timeï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½Ð§    
+    N_AUTO_SLEEP_DIS();                                 // GUIÉè¶¨sleep timeµÄÌõ¼þÏÂ£¬¹Ø±Õ×Ô¶¯ÐÝÃß¹¦ÄÜ£¬Ö»ÓÐN_PWR_DOWN²ÅÄÜÈëË¯
+                                                        // GUIÃ»ÓÐÉè¶¨sleep timeÔòÖ¸ÁîÎÞÐ§    
                                                         // (If user sets the sleep time in the GUI), disable the automatic sleep function, only N_PWR_DOWN can enter sleep
                                                         // The command is invalid if user does not set the sleep time in the GUI
-    u8RightCMD = N_ISP_WRITE_START(u32NSP_ID,u32CHIP_ID);	// ï¿½ï¿½ï¿½product IDï¿½Ä¸ï¿½2bytesï¿½ï¿½CHIP_IDï¿½Ç·ï¿½Ò»ï¿½Â£ï¿½Ò»ï¿½ÂµÄ»ï¿½ï¿½ï¿½ISPÐ´ï¿½ï¿½×¼ï¿½ï¿½
-    						      //ï¿½ï¿½ï¿½ï¿½N_ISP_WRITE_STARTï¿½ï¿½N_ISP_WRITE_PAGEï¿½ï¿½ï¿½ï¿½60us~300us
+    u8RightCMD = N_ISP_WRITE_START(u32NSP_ID,u32CHIP_ID);	// ¼ì²âproduct IDµÄ¸ß2bytesºÍCHIP_IDÊÇ·ñÒ»ÖÂ£¬Ò»ÖÂµÄ»°×öISPÐ´Èë×¼±¸
+    						      //½¨ÒéN_ISP_WRITE_STARTºÍN_ISP_WRITE_PAGE¼ä¼ä¸ô60us~300us
                                                       // Check whether the high 2bytes of product ID and CHIP_ID are  are the same. 
                                                       // If they are consistent, do the ISP write preparation.
                                                       //It is recommended that the interval between N_ISP_WRITE_START and N_ISP_WRITE_PAGE be 60us ~ 300us
     if ( u8RightCMD == 1 )
     {
-        while(u32ISPSizeDone < u32ISPSize)            // ï¿½ï¿½ï¿½ISPÐ´ï¿½ï¿½ï¿½ï¿½Ì£ï¿½Ã¿ï¿½ï¿½Ð´ï¿½ï¿½512ï¿½Ö½ï¿½
+        while(u32ISPSizeDone < u32ISPSize)            // Íê³ÉISPÐ´Èë¹ý³Ì£¬Ã¿´ÎÐ´Èë512×Ö½Ú
                                                       // Complete the ISP write process, writing 512 bytes each time
         {
             Flash_Read(&g_sFlash, u32StartAddr, g_au8Buf, FLASH_PAGE_SIZE);
             u32StartAddr += FLASH_PAGE_SIZE;
             ISP_BUFFER = g_au8Buf;
-            N_ISP_WRITE_PAGE(u32ISPADDR,ISP_BUFFER);  // ISPÐ´ï¿½ï¿½512ï¿½Ö½ï¿½
+            N_ISP_WRITE_PAGE(u32ISPADDR,ISP_BUFFER);  // ISPÐ´Èë512×Ö½Ú
                                                       // ISP write 512 bytes
             u32ISPADDR += FLASH_PAGE_SIZE;
             u32ISPSizeDone += FLASH_PAGE_SIZE;
         }
-        N_ISP_WRITE_END();                            // ISPÐ´ï¿½ï¿½ï¿½ï¿½ï¿½ 
+        N_ISP_WRITE_END();                            // ISPÐ´ÈëÍê³É 
                                                       // ISP write done
-        N_ISP_CHECKSUM(&ISP_CHECKSUM_BYTES);          // ï¿½Ãµï¿½ISP checksum
+        N_ISP_CHECKSUM(&ISP_CHECKSUM_BYTES);          // µÃµ½ISP checksum
     }
     
     //u32ISPSize = 0x200;
     //ISP_BUFFER = g_au8Buf;
     //N_ISP_READ_PARTIAL(u32ISPReadADDR,u32ISPSize,ISP_BUFFER);
 	
-    if (ISP_CHECKSUM_BYTES == u16ISPChecksumFromFile) // ï¿½Ð¶ï¿½ ISP Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½È·
+    if (ISP_CHECKSUM_BYTES == u16ISPChecksumFromFile) // ÅÐ¶Ï ISP Ð´ÈëÊý¾ÝÊÇ·ñÕýÈ·
                                                       // if the ISP writes the data correctly
     {	
-        N_PLAY(1);                                    // ï¿½ï¿½ï¿½ï¿½ Index 1 ï¿½ï¿½Ð§ 
+        N_PLAY(1);                                    // ²¥·Å Index 1 ÒôÐ§ 
                                                       // Play Index 1 Resource
-        I2C_WaitPlayEND();                        // ï¿½È´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+        I2C_WaitPlayEND();                        // µÈ´ý²¥·ÅÍê±Ï
                                                       // Waiting for playback to finish
     }   
-    N_AUTO_SLEEP_EN();                                  // ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ß¹ï¿½ï¿½Ü£ï¿½GUIï¿½è¶¨sleep timeÊ±ï¿½ï¿½ï¿½ï¿½Ã»ï¿½Ð²ï¿½ï¿½Å£ï¿½Ã»ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½î£¬Ã»ï¿½ï¿½LVDï¿½ï¿½checksumÖ´ï¿½Ð¾Í»ï¿½ï¿½ï¿½Ë¯
-                                                        // GUIÃ»ï¿½ï¿½ï¿½è¶¨sleep timeï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½Ð§    
+    N_AUTO_SLEEP_EN();                                  // ´ò¿ª×Ô¶¯ÐÝÃß¹¦ÄÜ£¬GUIÉè¶¨sleep timeÊ±¼äÄÚÃ»ÓÐ²¥·Å£¬Ã»ÓÐÐÂÖ¸Áî£¬Ã»ÓÐLVDºÍchecksumÖ´ÐÐ¾Í»áÈëË¯
+                                                        // GUIÃ»ÓÐÉè¶¨sleep timeÔòÖ¸ÁîÎÞÐ§    
                                                         // Enable the automatic sleep function:if no play, no new CMD, no LVD and checksum execution 
                                                         // during the sleep time(setting in the GUI),then the NSP will enter sleep
     							// The command is invalid if user does not set the sleep time in the GUI
@@ -602,7 +609,7 @@ void I2C_ISPUpdateAllResourceSample(void)
 /*----- NSP ISP Update one resource Sample -----*/
 void I2C_ISPUpdateOneResourceSample(void)
 {
-    UINT32 u32StartAddr = 0;                            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½
+    UINT32 u32StartAddr = 0;                            // ²ÎÊý³õÊ¼»¯
     UINT32 u32ChunkCount = 0;
     UINT32 u32ChunkSize = 0;
     UINT32 u32ChunkType = 0;
@@ -623,11 +630,11 @@ void I2C_ISPUpdateOneResourceSample(void)
     UINT8 u8NSP_STATUS1 = 0;
     UINT8 u8IsResourceChunk = 0;	
 	
-    HOST_SYS_Init();                                   // IO ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ 
+    HOST_BUS_Init();                                   // IO ½çÃæ³õÊ¼»¯ 
                                                        // host system initialization
-    N_WAKUP();                                          // ï¿½ï¿½ï¿½ï¿½
+    N_WAKUP();                                          // »½ÐÑ
                                                         // Wake Up                                                     
-    N_PLAY(3);                                         // ï¿½ï¿½ï¿½ï¿½ Index 3 ï¿½ï¿½Ð§(ï¿½ï¿½ï¿½ï¿½resource index=2)
+    N_PLAY(3);                                         // ²¥·Å Index 3 ÒôÐ§(°üº¬resource index=2)
                                                        // Play Index 3 Resource, including resource index=2
    // xx.bin:
    // byte 0x0~0x3      : Signature (NSPB)
@@ -638,20 +645,20 @@ void I2C_ISPUpdateOneResourceSample(void)
    // byte 0x14~0x17	: Chunk Data Size (4 bytes)
    // byte 0x18~0x19	: Resource Checksum (2 bytes)
     Flash_Read(&g_sFlash, u32StartAddr, g_au8Buf, 16);
-    u32ChunkCount = (g_au8Buf[8]<<24) + (g_au8Buf[9]<<16)+ (g_au8Buf[10]<<8) + g_au8Buf[11]; // ï¿½Ãµï¿½Chunk Count
+    u32ChunkCount = (g_au8Buf[8]<<24) + (g_au8Buf[9]<<16)+ (g_au8Buf[10]<<8) + g_au8Buf[11]; // µÃµ½Chunk Count
                                                       //get Chunk Count  
     u32StartAddr += 16;                                                   
     while ((u32ChunkCount >0 ) && (i < u32ChunkCount) && ( u8IsResourceChunk ==0 ))
     {
          Flash_Read(&g_sFlash, u32StartAddr, g_au8Buf, 10);
-         u32ChunkType = (g_au8Buf[0]<<24) + (g_au8Buf[1]<<16)+ (g_au8Buf[2]<<8) + g_au8Buf[3]; // ï¿½Ãµï¿½Chunk Type
+         u32ChunkType = (g_au8Buf[0]<<24) + (g_au8Buf[1]<<16)+ (g_au8Buf[2]<<8) + g_au8Buf[3]; // µÃµ½Chunk Type
                                                       //get Chunk Type  
-         u32ChunkSize = (g_au8Buf[4]<<24) + (g_au8Buf[5]<<16)+ (g_au8Buf[6]<<8) + g_au8Buf[7]; // ï¿½Ãµï¿½Chunk Size
+         u32ChunkSize = (g_au8Buf[4]<<24) + (g_au8Buf[5]<<16)+ (g_au8Buf[6]<<8) + g_au8Buf[7]; // µÃµ½Chunk Size
                                                       //get Chunk Size 
          if (u32ChunkType == 0x2 )
          {
                  u32ISPSize =  u32ChunkSize - 2;  
-                 u16ISPChecksumFromFile = (g_au8Buf[8]<<8) + g_au8Buf[9];		       // ï¿½Ãµï¿½resourceï¿½ï¿½checksum	
+                 u16ISPChecksumFromFile = (g_au8Buf[8]<<8) + g_au8Buf[9];		       // µÃµ½resourceµÄchecksum	
 	                                                                                       // get resource checksum  
 	         u32StartAddr += 10;
 	         u8IsResourceChunk = 1;  
@@ -664,26 +671,26 @@ void I2C_ISPUpdateOneResourceSample(void)
 	 }                                                                                                 
     }                                                  
                                                       
-    I2C_WaitPlayEND();                            // ï¿½È´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    I2C_WaitPlayEND();                            // µÈ´ý²¥·ÅÍê±Ï
                                                       // Waiting for playback to finish
      
-    N_AUTO_SLEEP_DIS();                                 // GUIï¿½è¶¨sleep timeï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â£ï¿½ï¿½Ø±ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ß¹ï¿½ï¿½Ü£ï¿½Ö»ï¿½ï¿½N_PWR_DOWNï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë¯
-                                                        // GUIÃ»ï¿½ï¿½ï¿½è¶¨sleep timeï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½Ð§    
+    N_AUTO_SLEEP_DIS();                                 // GUIÉè¶¨sleep timeµÄÌõ¼þÏÂ£¬¹Ø±Õ×Ô¶¯ÐÝÃß¹¦ÄÜ£¬Ö»ÓÐN_PWR_DOWN²ÅÄÜÈëË¯
+                                                        // GUIÃ»ÓÐÉè¶¨sleep timeÔòÖ¸ÁîÎÞÐ§    
                                                         // (If user sets the sleep time in the GUI), disable the automatic sleep function, only N_PWR_DOWN can enter sleep
                                                         // The command is invalid if user does not set the sleep time in the GUI	
-    u8RightCMD = N_ISP_READ_RES_INDEX(2);	                      // ï¿½ï¿½È¡resouce index =2 resourceï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
+    u8RightCMD = N_ISP_READ_RES_INDEX(2);	                      // ¶ÁÈ¡resouce index =2 resourceÏà¹ØÐÅÏ¢
                                                       // Read index = 2 resource related information 
    
     if ( u8RightCMD == 1 )
     {                                                   
 	    N_ISP_GET_RES_INFO(&u32SpaceSize, &u32ISPADDR, &u16FisrtPageDataByte, &u16PageCount, &u16LastPageDataByte);
-	    // ï¿½Ãµï¿½resouce index =2 resourceï¿½ï¿½Êµï¿½Ê¿Õ¼ï¿½size,ï¿½ï¿½Ö·,ï¿½ï¿½Ò»ï¿½ï¿½Ò³ï¿½ï¿½ï¿½dataï¿½ï¿½Ä¿,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½pageï¿½ï¿½Ä¿,ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ò³ï¿½ï¿½ï¿½dataï¿½ï¿½Ä¿
-	    // Get index = 2 resource related informationï¿½ï¿½ real space size, address, firt page bytes, page count,last page bytes 
+	    // µÃµ½resouce index =2 resourceµÄÊµ¼Ê¿Õ¼äsize,µØÖ·,µÚÒ»¸öÒ³ÃæµÄdataÊýÄ¿,ÍêÕûµÄpageÊýÄ¿,×îºóÒ»¸öÒ³ÃæµÄdataÊýÄ¿
+	    // Get index = 2 resource related information£º real space size, address, firt page bytes, page count,last page bytes 
 	    
 	    if ( u32ISPSize <= u32SpaceSize )
 	    {
-	    	N_ISP_WRITE_PARTIAL_START();                  //ÎªISPï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½×¼ï¿½ï¿½
-	                                                      //ï¿½ï¿½ï¿½ï¿½N_ISP_WRITE_PARTIAL_STARTï¿½ï¿½N_ISP_WRITE_PARTIAL_BAKï¿½ï¿½ï¿½ï¿½60us~300us
+	    	N_ISP_WRITE_PARTIAL_START();                  //ÎªISP²¿·Ö¸üÐÂ×ö×¼±¸
+	                                                      //½¨ÒéN_ISP_WRITE_PARTIAL_STARTºÍN_ISP_WRITE_PARTIAL_BAK¼ä¼ä¸ô60us~300us
 	                                                      //do the ISP write partial preparation.
 	                                                      //It is recommended that the interval between N_ISP_WRITE_PARTIAL_START and N_ISP_WRITE_PARTIAL_BAK be 60us ~ 300us
 	        u32SpaceSizeUnWrite = u32ISPSize;
@@ -695,9 +702,9 @@ void I2C_ISPUpdateOneResourceSample(void)
 		    	    Flash_Read(&g_sFlash, u32StartAddr, g_au8Buf, u16FisrtPageDataByte);
 		            u32StartAddr += u16FisrtPageDataByte;
 		            ISP_BUFFER = g_au8Buf;
-		            N_ISP_WRITE_PARTIAL_BAK(u32ISPADDR);      //ï¿½ï¿½Ò»ï¿½ï¿½Ò³ï¿½æ±¸ï¿½Ý£ï¿½ï¿½ï¿½Ö¹Ó°ï¿½ï¿½Ç°ï¿½ï¿½ï¿½resource
+		            N_ISP_WRITE_PARTIAL_BAK(u32ISPADDR);      //µÚÒ»¸öÒ³Ãæ±¸·Ý£¬·ÀÖ¹Ó°ÏìÇ°ÃæµÄresource
 		            					      //First page backup to prevent affecting the previous resource
-		            N_ISP_WRITE_PARTIAL(u32ISPADDR,u16FisrtPageDataByte,ISP_BUFFER);  // ISPÐ´ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ò³ï¿½ï¿½
+		            N_ISP_WRITE_PARTIAL(u32ISPADDR,u16FisrtPageDataByte,ISP_BUFFER);  // ISPÐ´ÈëµÚÒ»¸öÒ³Ãæ
 		                                                      // ISP write the first page
 		            u32ISPADDR += u16FisrtPageDataByte;
 		            u32SpaceSizeUnWrite = u32ISPSize - u16FisrtPageDataByte;
@@ -707,22 +714,22 @@ void I2C_ISPUpdateOneResourceSample(void)
 		     	    Flash_Read(&g_sFlash, u32StartAddr, g_au8Buf, u32ISPSize);
 		            u32StartAddr += u32ISPSize;
 		            ISP_BUFFER = g_au8Buf;
-		            N_ISP_WRITE_PARTIAL_BAK(u32ISPADDR);      //ï¿½ï¿½Ò»ï¿½ï¿½Ò³ï¿½æ±¸ï¿½Ý£ï¿½ï¿½ï¿½Ö¹Ó°ï¿½ï¿½Ç°ï¿½ï¿½ï¿½resource
+		            N_ISP_WRITE_PARTIAL_BAK(u32ISPADDR);      //µÚÒ»¸öÒ³Ãæ±¸·Ý£¬·ÀÖ¹Ó°ÏìÇ°ÃæµÄresource
 		            					      //First page backup to prevent affecting the previous resource
-		            N_ISP_WRITE_PARTIAL(u32ISPADDR,u32ISPSize,ISP_BUFFER);  // ISPÐ´ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ò³ï¿½ï¿½
+		            N_ISP_WRITE_PARTIAL(u32ISPADDR,u32ISPSize,ISP_BUFFER);  // ISPÐ´ÈëµÚÒ»¸öÒ³Ãæ
 		                                                      // ISP write the first page
 		            u32ISPADDR += u32ISPSize;
 		            u32SpaceSizeUnWrite = u32ISPSize - u32ISPSize;
 		     }
 		        
 	    	}
-	        while( u32SpaceSizeUnWrite >= 0x200 )         // Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½pageï¿½ï¿½Ã¿ï¿½ï¿½Ð´ï¿½ï¿½512ï¿½Ö½ï¿½
+	        while( u32SpaceSizeUnWrite >= 0x200 )         // Ð´ÈëÍêÕûµÄpage£¬Ã¿´ÎÐ´Èë512×Ö½Ú
 	                                                      // Write complete page, write 512 bytes at a time
 	        {
 	            Flash_Read(&g_sFlash, u32StartAddr, g_au8Buf, FLASH_PAGE_SIZE);
 	            u32StartAddr += FLASH_PAGE_SIZE;
 	            ISP_BUFFER = g_au8Buf;
-	            N_ISP_WRITE_PAGE(u32ISPADDR,ISP_BUFFER);  // ISPÐ´ï¿½ï¿½512ï¿½Ö½ï¿½
+	            N_ISP_WRITE_PAGE(u32ISPADDR,ISP_BUFFER);  // ISPÐ´Èë512×Ö½Ú
 	                                                      // ISP write 512 bytes
 	            u32ISPADDR += FLASH_PAGE_SIZE;
 	            u32SpaceSizeUnWrite = u32SpaceSizeUnWrite - FLASH_PAGE_SIZE;
@@ -732,82 +739,119 @@ void I2C_ISPUpdateOneResourceSample(void)
 	    	    Flash_Read(&g_sFlash, u32StartAddr, g_au8Buf, u32SpaceSizeUnWrite);
 	            u32StartAddr += u32SpaceSizeUnWrite;
 	            ISP_BUFFER = g_au8Buf;
-	            N_ISP_WRITE_PARTIAL_BAK(u32ISPADDR);      //ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ò³ï¿½æ±¸ï¿½Ý£ï¿½ï¿½ï¿½Ö¹Ó°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½resource
+	            N_ISP_WRITE_PARTIAL_BAK(u32ISPADDR);      //×îºóÒ»¸öÒ³Ãæ±¸·Ý£¬·ÀÖ¹Ó°ÏìºóÃæµÄresource
 	            					      //Last page backup to prevent affecting the next resource
-	            N_ISP_WRITE_PARTIAL(u32ISPADDR,u32SpaceSizeUnWrite,ISP_BUFFER);  // ISPÐ´ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ò³ï¿½ï¿½
+	            N_ISP_WRITE_PARTIAL(u32ISPADDR,u32SpaceSizeUnWrite,ISP_BUFFER);  // ISPÐ´ÈëµÚÒ»¸öÒ³Ãæ
 	                                                      // ISP write the first page
 	            u32ISPADDR += u32SpaceSizeUnWrite;
 	            u32SpaceSizeUnWrite = u32SpaceSizeUnWrite - u32SpaceSizeUnWrite;
 	    	}
 	        
-	        N_ISP_WRITE_END();                            // ISPÐ´ï¿½ï¿½ï¿½ï¿½ï¿½ 
+	        N_ISP_WRITE_END();                            // ISPÐ´ÈëÍê³É 
 	                                                      // ISP write done
-	        N_ISP_CHECKSUM(&ISP_CHECKSUM_BYTES);          // ï¿½Ãµï¿½ISP checksum
+	        N_ISP_CHECKSUM(&ISP_CHECKSUM_BYTES);          // µÃµ½ISP checksum
 	        
-	        if (ISP_CHECKSUM_BYTES == u16ISPChecksumFromFile) // ï¿½Ð¶ï¿½ ISP Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½È·
+	        if (ISP_CHECKSUM_BYTES == u16ISPChecksumFromFile) // ÅÐ¶Ï ISP Ð´ÈëÊý¾ÝÊÇ·ñÕýÈ·
 	                                                         // if the ISP writes the data correctly
 	        {	
-	            N_PLAY(3);                                    // ï¿½ï¿½ï¿½ï¿½ Index 3 ï¿½ï¿½Ð§(ï¿½ï¿½ï¿½ï¿½resource index=2)
+	            N_PLAY(3);                                    // ²¥·Å Index 3 ÒôÐ§(°üº¬resource index=2)
 	                                                          // Play Index 3 Resource, including resource index=2
-	            I2C_WaitPlayEND();                        // ï¿½È´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	            I2C_WaitPlayEND();                        // µÈ´ý²¥·ÅÍê±Ï
 	                                                         // Waiting for playback to finish
 	        }   
 	    }
 	}
 	
-    N_AUTO_SLEEP_EN();                                  // ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ß¹ï¿½ï¿½Ü£ï¿½GUIï¿½è¶¨sleep timeÊ±ï¿½ï¿½ï¿½ï¿½Ã»ï¿½Ð²ï¿½ï¿½Å£ï¿½Ã»ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½î£¬Ã»ï¿½ï¿½LVDï¿½ï¿½checksumÖ´ï¿½Ð¾Í»ï¿½ï¿½ï¿½Ë¯
-                                                        // GUIÃ»ï¿½ï¿½ï¿½è¶¨sleep timeï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½Ð§    
+    N_AUTO_SLEEP_EN();                                  // ´ò¿ª×Ô¶¯ÐÝÃß¹¦ÄÜ£¬GUIÉè¶¨sleep timeÊ±¼äÄÚÃ»ÓÐ²¥·Å£¬Ã»ÓÐÐÂÖ¸Áî£¬Ã»ÓÐLVDºÍchecksumÖ´ÐÐ¾Í»áÈëË¯
+                                                        // GUIÃ»ÓÐÉè¶¨sleep timeÔòÖ¸ÁîÎÞÐ§    
                                                         // Enable the automatic sleep function:if no play, no new CMD, no LVD and checksum execution 
                                                         // during the sleep time(setting in the GUI),then the NSP will enter sleep
     							// The command is invalid if user does not set the sleep time in the GUI
     while(1);
 }
+/*----- NSP Updata touch config -----*/
+UINT8 I2C_TouchUpdataSample(UINT16 u16ConfigSize)
+{
+    HOST_BUS_Init();                                    // IO ½çÃæ³õÊ¼»¯ 
+                                                        // IO Interface Initialization
+	Flash_Read(&g_sFlash, 0, g_au8Buf, u16ConfigSize);  // Read Config from SPIFlash.
+    N_WAKUP();                                          // »½ÐÑ
+                                                        // Wake Up        
+    N_AUTO_SLEEP_DIS();                                 // GUIÉè¶¨sleep timeµÄÌõ¼þÏÂ£¬¹Ø±Õ×Ô¶¯ÐÝÃß¹¦ÄÜ£¬Ö»ÓÐN_PWR_DOWN²ÅÄÜÈëË¯
+                                                        // GUIÃ»ÓÐÉè¶¨sleep timeÔòÖ¸ÁîÎÞÐ§    
+                                                        // (If user sets the sleep time in the GUI), disable the automatic sleep function, only N_PWR_DOWN can enter sleep
+                                                        // The command is invalid if user does not set the sleep time in the GUI													
+	 // Send config to NSP. after send, NSP will update this config.
+	return N_TOUCH_UPDATA(0, u16ConfigSize, g_au8Buf);   
+}
 
+/*----- NSP Load touch config -----*/
+UINT8 I2C_TouchLoadSample(UINT16 u16ConfigSize)
+{
+    UINT8 u8RightCMD = 0;
+	
+    HOST_BUS_Init();                                    // IO ½çÃæ³õÊ¼»¯ 
+                                                        // IO Interface Initialization
+    N_WAKUP();                                          // »½ÐÑ
+                                                        // Wake Up        
+    N_AUTO_SLEEP_DIS();                                 // GUIÉè¶¨sleep timeµÄÌõ¼þÏÂ£¬¹Ø±Õ×Ô¶¯ÐÝÃß¹¦ÄÜ£¬Ö»ÓÐN_PWR_DOWN²ÅÄÜÈëË¯
+                                                        // GUIÃ»ÓÐÉè¶¨sleep timeÔòÖ¸ÁîÎÞÐ§    
+                                                        // (If user sets the sleep time in the GUI), disable the automatic sleep function, only N_PWR_DOWN can enter sleep
+                                                        // The command is invalid if user does not set the sleep time in the GUI													
+	// Send config to NSP. after send, NSP will update this config.
+	u8RightCMD = N_TOUCH_LOAD(0, u16ConfigSize, g_au8Buf);   
+	// Write into SPIFlash.
+	if( u8RightCMD )
+	{	
+		Flash_Write(&g_sFlash, 0, g_au8Buf, u16ConfigSize);
+	}
+	return u8RightCMD;
+}
 //===========================================================
 /*----- Continue Play Sample -----*/
 void I2C_ContinuePlaySample(void)
 {
-    UINT16 temp = 0;                                    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½
+    UINT16 temp = 0;                                    // ²ÎÊý³õÊ¼»¯
                                                         // init parameter  
-    UINT8 MultiPlayBuffer[5] = {7,5,3,4,1};             // ï¿½è¶¨ï¿½ï¿½ï¿½Ø²ï¿½ï¿½ï¿½Ë³ï¿½ï¿½ï¿½ï¿½ï¿½ 
+    UINT8 MultiPlayBuffer[5] = {7,5,3,4,1};             // Éè¶¨¶àÖØ²¥·ÅË³Ðò²ÎÊý 
                                                         // Set the multiplay order parameters.
-    UINT16 MultiPlay2BBuffer[3] = {6,300,2};  	        // ï¿½è¶¨ï¿½ï¿½ï¿½Ø²ï¿½ï¿½ï¿½Ë³ï¿½ï¿½ï¿½ï¿½ï¿½ 
+    UINT16 MultiPlay2BBuffer[3] = {6,300,2};  	        // Éè¶¨¶àÖØ²¥·ÅË³Ðò²ÎÊý 
                                                         // Set the multiplay order parameters.                                                                             	
-    HOST_SYS_Init();                                    // IOï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½
+    HOST_BUS_Init();                                    // IO½çÃæ³õÊ¼»¯
                                                         // IO Interface Initialization
-    N_AUTO_SLEEP_DIS();                                 // GUIï¿½è¶¨sleep timeï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â£ï¿½ï¿½Ø±ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ß¹ï¿½ï¿½Ü£ï¿½Ö»ï¿½ï¿½N_PWR_DOWNï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë¯
-                                                        // GUIÃ»ï¿½ï¿½ï¿½è¶¨sleep timeï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½Ð§    
+    N_AUTO_SLEEP_DIS();                                 // GUIÉè¶¨sleep timeµÄÌõ¼þÏÂ£¬¹Ø±Õ×Ô¶¯ÐÝÃß¹¦ÄÜ£¬Ö»ÓÐN_PWR_DOWN²ÅÄÜÈëË¯
+                                                        // GUIÃ»ÓÐÉè¶¨sleep timeÔòÖ¸ÁîÎÞÐ§    
                                                         // (If user sets the sleep time in the GUI), disable the automatic sleep function, only N_PWR_DOWN can enter sleep
                                                         // The command is invalid if user does not set the sleep time in the GUI
-    N_PLAY(1);                                          // ï¿½ï¿½ï¿½Å±ï¿½ï¿½ï¿½ï¿½ï¿½ Index 1 ï¿½ï¿½Ð§ 
+    N_PLAY(1);                                          // ²¥·Å±³¾°Òô Index 1 ÒôÐ§ 
                                                         // Play Index 1 Resource
-    N_PLAY_REPEAT(2);                                   // Ñ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Index 1 ï¿½ï¿½Ð§2ï¿½ï¿½
+    N_PLAY_REPEAT(2);                                   // Ñ­»·²¥·Å Index 1 ÒôÐ§2±é
                                                         // repeat 2 times                                                    
-    for (temp= 0; temp < 16000; temp++)                 // ï¿½ï¿½ï¿½ï¿½ 8 ï¿½ï¿½ï¿½ï¿½
+    for (temp= 0; temp < 16000; temp++)                 // ²¥·Å 8 ÃëÖÓ
     {                                                   // play for 8 seconds
         HOST_Delay500uS();     
     }    
-    N_PAUSE(); 						// ï¿½ï¿½Í£ï¿½ï¿½ï¿½ï¿½Index 1 ï¿½ï¿½Ð§
+    N_PAUSE(); 						// ÔÝÍ£²¥·ÅIndex 1 ÒôÐ§
                                                         // pause play Index 1
                                                         
-    N_MULTI_PLAY(5,&MultiPlayBuffer[0]);                // ï¿½è¶¨5ï¿½Ø¶ï¿½ï¿½é²¥ï¿½Å£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ Buffer[0]ï¿½ï¿½Ê¼ 
+    N_MULTI_PLAY(5,&MultiPlayBuffer[0]);                // Éè¶¨5ÖØ¶à×é²¥·Å£¬²¥·ÅÆðÊ¼ÓÉ Buffer[0]¿ªÊ¼ 
                                                         // Set 5 groups of multi-play, starting playback starts with Buffer[0].
-    for (temp= 0; temp < 8000; temp++)                  // ï¿½ï¿½ï¿½ï¿½ 4 ï¿½ï¿½ï¿½ï¿½
+    for (temp= 0; temp < 8000; temp++)                  // ²¥·Å 4 ÃëÖÓ
     {                                                   // play for 4 seconds
         HOST_Delay500uS();     
     }   
     
-    N_MULTI_PLAY_2B(3,&MultiPlay2BBuffer[0]);           // ï¿½è¶¨3ï¿½Ø¶ï¿½ï¿½é²¥ï¿½Å£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ 2BBuffer[0]ï¿½ï¿½Ê¼ 
+    N_MULTI_PLAY_2B(3,&MultiPlay2BBuffer[0]);           // Éè¶¨3ÖØ¶à×é²¥·Å£¬²¥·ÅÆðÊ¼ÓÉ 2BBuffer[0]¿ªÊ¼ 
                                                         // Set 3 groups of multi-play, starting playback starts with 2BBuffer[0].
-    I2C_WaitPlayEND();                                 // ï¿½È´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    I2C_WaitPlayEND();                                 // µÈ´ý²¥·ÅÍê±Ï
                                                         // Waiting for playback to finish
     
-    N_RESUME(); 					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Index 1 ï¿½ï¿½Ð§
+    N_RESUME(); 					// ¼ÌÐø²¥·ÅIndex 1 ÒôÐ§
                                                         // resume play Index 1                                                   
-    I2C_WaitPlayEND();                                 // ï¿½È´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    I2C_WaitPlayEND();                                 // µÈ´ý²¥·ÅÍê±Ï
                                                         // Waiting for playback to finish
-    N_AUTO_SLEEP_EN();                                  // ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ß¹ï¿½ï¿½Ü£ï¿½GUIï¿½è¶¨sleep timeÊ±ï¿½ï¿½ï¿½ï¿½Ã»ï¿½Ð²ï¿½ï¿½Å£ï¿½Ã»ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½î£¬Ã»ï¿½ï¿½LVDï¿½ï¿½checksumÖ´ï¿½Ð¾Í»ï¿½ï¿½ï¿½Ë¯
-                                                        // GUIÃ»ï¿½ï¿½ï¿½è¶¨sleep timeï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½Ð§    
+    N_AUTO_SLEEP_EN();                                  // ´ò¿ª×Ô¶¯ÐÝÃß¹¦ÄÜ£¬GUIÉè¶¨sleep timeÊ±¼äÄÚÃ»ÓÐ²¥·Å£¬Ã»ÓÐÐÂÖ¸Áî£¬Ã»ÓÐLVDºÍchecksumÖ´ÐÐ¾Í»áÈëË¯
+                                                        // GUIÃ»ÓÐÉè¶¨sleep timeÔòÖ¸ÁîÎÞÐ§    
                                                         // Enable the automatic sleep function:if no play, no new CMD, no LVD and checksum execution 
                                                         // during the sleep time(setting in the GUI),then the NSP will enter sleep
     							// The command is invalid if user does not set the sleep time in the GUI
@@ -822,17 +866,17 @@ UINT8 I2C_UserDataWrite(UINT32 UserWrite_ADDR,PUINT8 ISP_BUFFER,UINT16 WriteSize
     UINT32 u32ISPWriteADDR = 0;
     UINT32 u32SpaceSizeUnWrite = 0;
     UINT32 u32ISPADDR = 0;
-    UINT32 u32SpaceSize = 0;				//ï¿½ï¿½ï¿½Ý¿Õ¼ï¿½ï¿½Ð¡ 
+    UINT32 u32SpaceSize = 0;				//Êý¾Ý¿Õ¼ä´óÐ¡ 
     UINT16 u16FisrtPageDataByte = 0;
     UINT16 u16PageCount = 0;
     UINT16 u16LastPageDataByte = 0;
     	
-    HOST_BUS_Init();                                   // IO ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ 
+    HOST_BUS_Init();                                   // IO ½çÃæ³õÊ¼»¯ 
                                                        // IO Interface Initialization
     
     N_ISP_GET_USER_SPACE_INFO(&u32SpaceSize, &u32ISPADDR, &u16FisrtPageDataByte, &u16PageCount, &u16LastPageDataByte);
-	    // ï¿½Ãµï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½Ý¿Õ¼ï¿½ï¿½Ð¡,ï¿½ï¿½Ö·,ï¿½ï¿½Ò»ï¿½ï¿½Ò³ï¿½ï¿½ï¿½dataï¿½ï¿½Ä¿,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½pageï¿½ï¿½Ä¿,ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ò³ï¿½ï¿½ï¿½dataï¿½ï¿½Ä¿
-	    // Get user space related informationï¿½ï¿½ real space size, address, firt page bytes, page count,last page bytes 
+	    // µÃµ½ÓÃ»§Êý¾Ý¿Õ¼ä´óÐ¡,µØÖ·,µÚÒ»¸öÒ³ÃæµÄdataÊýÄ¿,ÍêÕûµÄpageÊýÄ¿,×îºóÒ»¸öÒ³ÃæµÄdataÊýÄ¿
+	    // Get user space related information£º real space size, address, firt page bytes, page count,last page bytes 
 	    
     u32ISPWriteADDR = u32ISPADDR + UserWrite_ADDR;
     u32SpaceSizeUnWrite = WriteSize;
@@ -842,8 +886,8 @@ UINT8 I2C_UserDataWrite(UINT32 UserWrite_ADDR,PUINT8 ISP_BUFFER,UINT16 WriteSize
     if ((WriteSize > u32SpaceSize) || ((u32ISPWriteADDR + WriteSize) > (u32ISPADDR + u32SpaceSize)))
     	return 0;
     	
-    RTN = N_ISP_WRITE_PARTIAL_START();                  //ÎªISPï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½×¼ï¿½ï¿½
-                                                      //ï¿½ï¿½ï¿½ï¿½N_ISP_WRITE_PARTIAL_STARTï¿½ï¿½N_ISP_WRITE_PARTIAL_BAKï¿½ï¿½ï¿½ï¿½60us~300us
+    RTN = N_ISP_WRITE_PARTIAL_START();                  //ÎªISP²¿·Ö¸üÐÂ×ö×¼±¸
+                                                      //½¨ÒéN_ISP_WRITE_PARTIAL_STARTºÍN_ISP_WRITE_PARTIAL_BAK¼ä¼ä¸ô60us~300us
                                                       //do the ISP write partial preparation.
                                                       //It is recommended that the interval between N_ISP_WRITE_PARTIAL_START and N_ISP_WRITE_PARTIAL_BAK be 60us ~ 300us
     if ( RTN  == 1)
@@ -851,13 +895,13 @@ UINT8 I2C_UserDataWrite(UINT32 UserWrite_ADDR,PUINT8 ISP_BUFFER,UINT16 WriteSize
     	u16FisrtPageDataByte = 0x200 - (u32ISPWriteADDR & 0x1FF);
     	if (( u16FisrtPageDataByte > 0 ) && ( u16FisrtPageDataByte < 0x200 ))
     	{
-    	    RTN = N_ISP_WRITE_PARTIAL_BAK(u32ISPWriteADDR);      //ï¿½ï¿½Ò»ï¿½ï¿½Ò³ï¿½æ±¸ï¿½Ý£ï¿½ï¿½ï¿½Ö¹Ó°ï¿½ï¿½Ç°ï¿½ï¿½ï¿½resource
+    	    RTN = N_ISP_WRITE_PARTIAL_BAK(u32ISPWriteADDR);      //µÚÒ»¸öÒ³Ãæ±¸·Ý£¬·ÀÖ¹Ó°ÏìÇ°ÃæµÄresource
 	            					      //First page backup to prevent affecting the previous resource
 	    if ( RTN == 0 )
 	            return 0;        					      
     	    if (u16FisrtPageDataByte <= u32SpaceSizeUnWrite)
     	    {	            
-	            RTN = N_ISP_WRITE_PARTIAL(u32ISPWriteADDR,u16FisrtPageDataByte,ISP_BUFFER);  // ISPÐ´ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ò³ï¿½ï¿½
+	            RTN = N_ISP_WRITE_PARTIAL(u32ISPWriteADDR,u16FisrtPageDataByte,ISP_BUFFER);  // ISPÐ´ÈëµÚÒ»¸öÒ³Ãæ
 	                                                      // ISP write the first page
 	            if ( RTN == 0 )
 	            return 0;  
@@ -866,7 +910,7 @@ UINT8 I2C_UserDataWrite(UINT32 UserWrite_ADDR,PUINT8 ISP_BUFFER,UINT16 WriteSize
 	     }
 	     else
 	     {
-	            RTN = N_ISP_WRITE_PARTIAL(u32ISPWriteADDR,u32SpaceSizeUnWrite,ISP_BUFFER);  // ISPÐ´ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ò³ï¿½ï¿½
+	            RTN = N_ISP_WRITE_PARTIAL(u32ISPWriteADDR,u32SpaceSizeUnWrite,ISP_BUFFER);  // ISPÐ´ÈëµÚÒ»¸öÒ³Ãæ
 	                                                      // ISP write the first page
 	            if ( RTN == 0 )
 	            return 0;  
@@ -875,10 +919,10 @@ UINT8 I2C_UserDataWrite(UINT32 UserWrite_ADDR,PUINT8 ISP_BUFFER,UINT16 WriteSize
 	     }
 	        
     	}
-        while( u32SpaceSizeUnWrite >= 0x200 )         // Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½pageï¿½ï¿½Ã¿ï¿½ï¿½Ð´ï¿½ï¿½512ï¿½Ö½ï¿½
+        while( u32SpaceSizeUnWrite >= 0x200 )         // Ð´ÈëÍêÕûµÄpage£¬Ã¿´ÎÐ´Èë512×Ö½Ú
                                                       // Write complete page, write 512 bytes at a time
         {
-            RTN = N_ISP_WRITE_PAGE(u32ISPWriteADDR,ISP_BUFFER);  // ISPÐ´ï¿½ï¿½512ï¿½Ö½ï¿½
+            RTN = N_ISP_WRITE_PAGE(u32ISPWriteADDR,ISP_BUFFER);  // ISPÐ´Èë512×Ö½Ú
                                                       // ISP write 512 bytes
             if ( RTN == 0 )
 	            return 0;  
@@ -887,11 +931,11 @@ UINT8 I2C_UserDataWrite(UINT32 UserWrite_ADDR,PUINT8 ISP_BUFFER,UINT16 WriteSize
         }
         if ( u32SpaceSizeUnWrite > 0 )
     	{
-            RTN = N_ISP_WRITE_PARTIAL_BAK(u32ISPWriteADDR);      //ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ò³ï¿½æ±¸ï¿½Ý£ï¿½ï¿½ï¿½Ö¹Ó°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½resource
+            RTN = N_ISP_WRITE_PARTIAL_BAK(u32ISPWriteADDR);      //×îºóÒ»¸öÒ³Ãæ±¸·Ý£¬·ÀÖ¹Ó°ÏìºóÃæµÄresource
             					      //Last page backup to prevent affecting the next resource
             if ( RTN == 0 )
 	            return 0;  
-            RTN = N_ISP_WRITE_PARTIAL(u32ISPWriteADDR,u32SpaceSizeUnWrite,ISP_BUFFER);  // ISPÐ´ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ò³ï¿½ï¿½
+            RTN = N_ISP_WRITE_PARTIAL(u32ISPWriteADDR,u32SpaceSizeUnWrite,ISP_BUFFER);  // ISPÐ´ÈëµÚÒ»¸öÒ³Ãæ
                                                       // ISP write the first page
             if ( RTN == 0 )
 	            return 0;  
@@ -899,12 +943,12 @@ UINT8 I2C_UserDataWrite(UINT32 UserWrite_ADDR,PUINT8 ISP_BUFFER,UINT16 WriteSize
             u32SpaceSizeUnWrite -= u32SpaceSizeUnWrite;
     	}
         
-    	RTN = N_ISP_WRITE_END();                            // ISPÐ´ï¿½ï¿½ï¿½ï¿½ï¿½ 
+    	RTN = N_ISP_WRITE_END();                            // ISPÐ´ÈëÍê³É 
                                                       	    // ISP write done
         if ( RTN == 0 )
 	      return 0;   
 	                                                    	  
-    	N_ISP_CHECKSUM(&ISP_CHECKSUM_BYTES);          // ï¿½Ãµï¿½ISP checksum
+    	N_ISP_CHECKSUM(&ISP_CHECKSUM_BYTES);          // µÃµ½ISP checksum
     }
     return RTN;	
 }
@@ -916,17 +960,17 @@ UINT8 I2C_UserDataRead(UINT32 UserRead_ADDR,PUINT8 ISP_BUFFER,UINT16 ReadSize)
     UINT32 u32ISPReadADDR = 0;
     UINT32 u32SpaceSizeUnRead = 0;
     UINT32 u32ISPADDR = 0;
-    UINT32 u32SpaceSize = 0;				//ï¿½ï¿½ï¿½Ý¿Õ¼ï¿½ï¿½Ð¡
+    UINT32 u32SpaceSize = 0;				//Êý¾Ý¿Õ¼ä´óÐ¡
     UINT16 u16FisrtPageDataByte = 0;
     UINT16 u16PageCount = 0;
     UINT16 u16LastPageDataByte = 0;
 	
-    HOST_BUS_Init();                                   // IO ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ 
+    HOST_BUS_Init();                                   // IO ½çÃæ³õÊ¼»¯ 
                                                        // IO Interface Initialization
     
     N_ISP_GET_USER_SPACE_INFO(&u32SpaceSize, &u32ISPADDR, &u16FisrtPageDataByte, &u16PageCount, &u16LastPageDataByte);
-	    // ï¿½Ãµï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½Ý¿Õ¼ï¿½ï¿½Ð¡,ï¿½ï¿½Ö·,ï¿½ï¿½Ò»ï¿½ï¿½Ò³ï¿½ï¿½ï¿½dataï¿½ï¿½Ä¿,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½pageï¿½ï¿½Ä¿,ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ò³ï¿½ï¿½ï¿½dataï¿½ï¿½Ä¿
-	    // Get user space related informationï¿½ï¿½ real space size, address, firt page bytes, page count,last page bytes 
+	    // µÃµ½ÓÃ»§Êý¾Ý¿Õ¼ä´óÐ¡,µØÖ·,µÚÒ»¸öÒ³ÃæµÄdataÊýÄ¿,ÍêÕûµÄpageÊýÄ¿,×îºóÒ»¸öÒ³ÃæµÄdataÊýÄ¿
+	    // Get user space related information£º real space size, address, firt page bytes, page count,last page bytes 
 
     u32ISPReadADDR = u32ISPADDR + UserRead_ADDR;
     u32SpaceSizeUnRead = ReadSize;
@@ -941,7 +985,7 @@ UINT8 I2C_UserDataRead(UINT32 UserRead_ADDR,PUINT8 ISP_BUFFER,UINT16 ReadSize)
     	{
     	    if (u16FisrtPageDataByte <= u32SpaceSizeUnRead)
     	    {
-    	    	    RTN = N_ISP_READ_PARTIAL(u32ISPReadADDR,u16FisrtPageDataByte,ISP_BUFFER);  //ï¿½ï¿½È¡Ö¸ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½Ê¼ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½Ö½ï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½Ö½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½512),ï¿½ï¿½ï¿½ë»ºï¿½ï¿½
+    	    	    RTN = N_ISP_READ_PARTIAL(u32ISPReadADDR,u16FisrtPageDataByte,ISP_BUFFER);  //¶ÁÈ¡Ö¸¶¨µØÖ·¿ªÊ¼µÄÖ¸¶¨×Ö½ÚÊý¾Ý(×Ö½ÚÊýÐ¡ÓÚ512),´æÈë»º´æ
                                                      //Read the specified byte data at the beginning of the specified address (the number of bytes is less than 512), and store it in the buffer
 	            if ( RTN == 0 )
 	            	return 0;
@@ -950,7 +994,7 @@ UINT8 I2C_UserDataRead(UINT32 UserRead_ADDR,PUINT8 ISP_BUFFER,UINT16 ReadSize)
 	     }
 	     else
 	     {
-	     	    RTN = N_ISP_READ_PARTIAL(u32ISPReadADDR,ReadSize,ISP_BUFFER);  //ï¿½ï¿½È¡Ö¸ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½Ê¼ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½Ö½ï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½Ö½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½512),ï¿½ï¿½ï¿½ë»ºï¿½ï¿½
+	     	    RTN = N_ISP_READ_PARTIAL(u32ISPReadADDR,ReadSize,ISP_BUFFER);  //¶ÁÈ¡Ö¸¶¨µØÖ·¿ªÊ¼µÄÖ¸¶¨×Ö½ÚÊý¾Ý(×Ö½ÚÊýÐ¡ÓÚ512),´æÈë»º´æ
                                                      //Read the specified byte data at the beginning of the specified address (the number of bytes is less than 512), and store it in the buffer
 	            if ( RTN == 0 )
 	            	return 0;
@@ -959,10 +1003,10 @@ UINT8 I2C_UserDataRead(UINT32 UserRead_ADDR,PUINT8 ISP_BUFFER,UINT16 ReadSize)
 	     }
 	        
     	}
-        while( u32SpaceSizeUnRead >= 0x200 )         // Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½pageï¿½ï¿½Ã¿ï¿½ï¿½Ð´ï¿½ï¿½512ï¿½Ö½ï¿½
+        while( u32SpaceSizeUnRead >= 0x200 )         // Ð´ÈëÍêÕûµÄpage£¬Ã¿´ÎÐ´Èë512×Ö½Ú
                                                       // Write complete page, write 512 bytes at a time
         {
-            RTN = N_ISP_READ_PAGE(u32ISPReadADDR,ISP_BUFFER); //ï¿½ï¿½È¡Ö¸ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½Ê¼ï¿½ï¿½Ò»ï¿½ï¿½Ò³ï¿½ï¿½(512ï¿½Ö½ï¿½)ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ë»ºï¿½ï¿½
+            RTN = N_ISP_READ_PAGE(u32ISPReadADDR,ISP_BUFFER); //¶ÁÈ¡Ö¸¶¨µØÖ·¿ªÊ¼µÄÒ»¸öÒ³Ãæ(512×Ö½Ú)µÄÊý¾Ý,´æÈë»º´æ
                                                      //Read the data of a page (512 bytes) starting at the specified address and store it in the buffer
             if ( RTN == 0 )
 	        return 0;
@@ -972,7 +1016,7 @@ UINT8 I2C_UserDataRead(UINT32 UserRead_ADDR,PUINT8 ISP_BUFFER,UINT16 ReadSize)
         if ( u32SpaceSizeUnRead > 0 )
     	{
     	    
-    	    RTN = N_ISP_READ_PARTIAL(u32ISPReadADDR,u32SpaceSizeUnRead,ISP_BUFFER);  //ï¿½ï¿½È¡Ö¸ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½Ê¼ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½Ö½ï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½Ö½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½512),ï¿½ï¿½ï¿½ë»ºï¿½ï¿½
+    	    RTN = N_ISP_READ_PARTIAL(u32ISPReadADDR,u32SpaceSizeUnRead,ISP_BUFFER);  //¶ÁÈ¡Ö¸¶¨µØÖ·¿ªÊ¼µÄÖ¸¶¨×Ö½ÚÊý¾Ý(×Ö½ÚÊýÐ¡ÓÚ512),´æÈë»º´æ
                                                      //Read the specified byte data at the beginning of the specified address (the number of bytes is less than 512), and store it in the buffer
 	    if ( RTN == 0 )
 	        return 0;
@@ -984,8 +1028,8 @@ UINT8 I2C_UserDataRead(UINT32 UserRead_ADDR,PUINT8 ISP_BUFFER,UINT16 ReadSize)
 
 /*----- NSP Provide space to store MCU user data -----*/
 void I2C_ISPUserSpaceWriteAndRead(void)
-{							// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½
-    UINT8 RTN = 0;					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½
+{							// ²ÎÊý³õÊ¼»¯
+    UINT8 RTN = 0;					// ²ÎÊý³õÊ¼»¯
     
     UINT8 g_au8Buf_Write[10]= {0x5A,0xA5,0x55,0xAA,0x9C,0x87,0x2B,0x64,0xF7,0x96};
 
@@ -997,5 +1041,3 @@ void I2C_ISPUserSpaceWriteAndRead(void)
     
     while(1);
 }
-
-

@@ -2709,13 +2709,16 @@ Embedded19 = ..\Resources\sad_10sec.WAV,D:\SourceCode\_Avery_M031\M031BSP_I2C_NS
 File1 = .\NuTemplate.uid,D:\SourceCode\_Avery_M031\M031BSP_I2C_NSP2340A\SampleCode\Template\NSP2340A_SampleProject\CpuIf\NuTemplate.uid
 Embedded18 = ..\Resources\alone_10sec.WAV,D:\SourceCode\_Avery_M031\M031BSP_I2C_NSP2340A\SampleCode\Template\NSP2340A_SampleProject\Resources\alone_10sec.WAV
 Embedded13 = ..\Resources\1.WAV,D:\SourceCode\_Avery_M031\M031BSP_I2C_NSP2340A\SampleCode\Template\NSP2340A_SampleProject\Resources\1.WAV
-Embedded12 = C:\Users\averyc\AppData\Local\Temp\PlaylistEditorGenTmp\NSP2340A_SampleProject\ConvertResource\ResFD36FB6E77B77FBB.WAV,C:\Users\averyc\AppData\Local\Temp\PlaylistEditorGenTmp\NSP2340A_SampleProject\ConvertResource\ResFD36FB6E77B77FBB.WAV
+Embedded12 = C:\Users\averyc\AppData\Local\Temp\PlaylistEditorGenTmp\NSP2340A_SampleProject\ConvertResource\ResFD36FB6E77B77FBB1.WAV,C:\Users\averyc\AppData\Local\Temp\PlaylistEditorGenTmp\NSP2340A_SampleProject\ConvertResource\ResFD36FB6E77B77FBB1.WAV
 Embedded14 = ..\Resources\2.WAV,D:\SourceCode\_Avery_M031\M031BSP_I2C_NSP2340A\SampleCode\Template\NSP2340A_SampleProject\Resources\2.WAV
-Embedded11 = C:\Users\averyc\AppData\Local\Temp\PlaylistEditorGenTmp\NSP2340A_SampleProject\ConvertResource\Res3BAF083308FDB193.WAV,C:\Users\averyc\AppData\Local\Temp\PlaylistEditorGenTmp\NSP2340A_SampleProject\ConvertResource\Res3BAF083308FDB193.WAV
+Embedded11 = C:\Users\averyc\AppData\Local\Temp\PlaylistEditorGenTmp\NSP2340A_SampleProject\ConvertResource\Res3BAF083308FDB1930.WAV,C:\Users\averyc\AppData\Local\Temp\PlaylistEditorGenTmp\NSP2340A_SampleProject\ConvertResource\Res3BAF083308FDB1930.WAV
 
 [OpenedFiles]
-File2 = If\n;ïXöá,If\n;ïXöá
+File2 = If\ŒëùÕÅ[,If\ŒëùÕÅ[
 File1 = .\AudioRes.wba,D:\SourceCode\_Avery_M031\M031BSP_I2C_NSP2340A\SampleCode\Template\NSP2340A_SampleProject\CpuIf\AudioRes.wba
+File3 = 
+»•E∏¶E,
+»•E∏¶E
 
 [Instrument Index Info]
 InstrumentFile2_Index1 = 124
@@ -2801,7 +2804,7 @@ ResFile9_Unique_ID = 9
 ResFile9_ReSampleRate = 16000
 ResFile6_SrcFile1 = .\NuTemplate.uid,D:\SourceCode\_Avery_M031\M031BSP_I2C_NSP2340A\SampleCode\Template\NSP2340A_SampleProject\CpuIf\NuTemplate.uid
 ResFile6_Size = -1
-ResFile6 = C:\Users\averyc\AppData\Local\Temp\PlaylistEditorGenTmp\NSP2340A_SampleProject\ConvertResource\Res3BAF083308FDB193.WAV,C:\Users\averyc\AppData\Local\Temp\PlaylistEditorGenTmp\NSP2340A_SampleProject\ConvertResource\Res3BAF083308FDB193.WAV
+ResFile6 = C:\Users\averyc\AppData\Local\Temp\PlaylistEditorGenTmp\NSP2340A_SampleProject\ConvertResource\Res3BAF083308FDB1930.WAV,C:\Users\averyc\AppData\Local\Temp\PlaylistEditorGenTmp\NSP2340A_SampleProject\ConvertResource\Res3BAF083308FDB1930.WAV
 ResFile6_Ext = 0
 ResFile4_Size = -1
 ResFile8_BoostVol = 0.000000e+000
@@ -2853,7 +2856,7 @@ ResFile1_VEL = 0
 ResFile6_Relocate = 1
 ResFile3_ReSampleRate = 16000
 ResFile3_SrcLine1 = 4
-ResFile7 = C:\Users\averyc\AppData\Local\Temp\PlaylistEditorGenTmp\NSP2340A_SampleProject\ConvertResource\ResFD36FB6E77B77FBB.WAV,C:\Users\averyc\AppData\Local\Temp\PlaylistEditorGenTmp\NSP2340A_SampleProject\ConvertResource\ResFD36FB6E77B77FBB.WAV
+ResFile7 = C:\Users\averyc\AppData\Local\Temp\PlaylistEditorGenTmp\NSP2340A_SampleProject\ConvertResource\ResFD36FB6E77B77FBB1.WAV,C:\Users\averyc\AppData\Local\Temp\PlaylistEditorGenTmp\NSP2340A_SampleProject\ConvertResource\ResFD36FB6E77B77FBB1.WAV
 ResFile5_BoostVol = 0.000000e+000
 ResFile3_VEL = 0
 ResFile7_Unique_ID = 7

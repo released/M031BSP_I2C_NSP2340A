@@ -2,7 +2,7 @@
 PlayListCfg1 = PlayList_CpuIf_NSP2340
 ChipID = -1876737857
 PlayListCfg2 = PlayList_DemoKit_NSP2340
-Version = 2.00.004
+Version = 2.00.008
 Chipitem = NSP2340_SOP8
 Config = {"AutoSaveResToLocal":0,"AutoSleep":1,"BusyOutput":0,"BusyPin":"","CommandTimeout":"3.20","ContinuePlayback":0,"DebounceTime":"40","I2C_DevAddr":90,"I2C_Frequency":100000,"ISPWrite":0,"PORCheckSum":0,"PaSupport":0,"PullHighLowReg":0,"PullModeDemo":1,"ResetStatus":1,"SilenceCompress":1,"SilenceConditionLimit":"10","SilenceConditionPCM":"0","SingleResUpdate":0,"StandByTime":"1.00","UartBaudRate":7200,"UartDelay":0,"UartParity":0,"UserDataSize":0,"WireMode":2}
 ChipType = NSP
@@ -12,6 +12,7 @@ ProductID = 305419896
 NVPBuildSuccess = 1
 NVPPORIndex = -1
 NVPNeedRebuild = 0
+NVPListIndex = 0
 NVPSeqCount = 10
 NVPConfig = {"IsAppendDemoKit":0}
 
@@ -19,6 +20,7 @@ NVPConfig = {"IsAppendDemoKit":0}
 NVPBuildSuccess = 0
 NVPPORIndex = -1
 NVPNeedRebuild = 1
+NVPListIndex = 0
 NVPSeqCount = 4
 NVPConfig = {"IsAppendDemoKit":0}
 
