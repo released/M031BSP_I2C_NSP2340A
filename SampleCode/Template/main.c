@@ -337,6 +337,30 @@ void NSP_process(void)
 
 }
 
+void NSP_do_LowVoltageDetect(void)
+{
+    UINT8	u8LVD_VALUE = 0;
+    uint8_t   rtn = 0;
+
+    printf("\r\n%s start\r\n",__FUNCTION__);
+    rtn = N_DO_LVD();	
+    printf("%s delay 1 sec (0x%02X)\r\n",__FUNCTION__,rtn);
+    delay_ms(1000);		
+    rtn = N_GET_LVD(&u8LVD_VALUE); 
+    /*
+        // Get current voltage u8LVD_VALUE		
+        // 01H:              	VDD < 2.1V,
+        // 02H:  	2.1V �� VDD < 2.4V,
+        // 04H: 	2.4V �� VDD < 2.7V,
+        // 08H: 	2.7V �� VDD < 3.0V,
+        // 10H: 	3.0V �� VDD < 3.3V,
+        // 20H: 	3.3V �� VDD.
+    */
+    printf("%s :0x%02X (0x%02X)\r\n",__FUNCTION__,u8LVD_VALUE,rtn);
+
+    printf("%s end\r\n",__FUNCTION__);
+}
+
 void NSP_do_checksum(void)
 {
     uint16_t  checksum = 0;
@@ -345,7 +369,7 @@ void NSP_do_checksum(void)
     uint8_t   rtn = 0;
 
 
-    printf("%s start\r\n",__FUNCTION__);
+    printf("\r\n%s start\r\n",__FUNCTION__);
     rtn = N_GET_FW_VERSION(&fw_ver);
     printf("FW version:0x%04X (0x%02X)\r\n",fw_ver,rtn);
 
@@ -783,6 +807,7 @@ int main()
     printf("nsp_ID = 0x%2X\r\n" , nsp_ID);
 
     NSP_do_checksum();
+    NSP_do_LowVoltageDetect();
 
     /* Got no where to go, just loop forever */
     while(1)
